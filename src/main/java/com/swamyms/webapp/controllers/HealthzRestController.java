@@ -2,6 +2,7 @@ package com.swamyms.webapp.controllers;
 
 
 import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
+import com.swamyms.webapp.exceptionhandling.exceptions.MethodNotAllowedException;
 import com.swamyms.webapp.exceptionhandling.model.ApiMessage;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
@@ -68,6 +69,52 @@ public class HealthzRestController {
         }catch (PersistenceException pe){
             throw new DataBaseConnectionException("Data base connection failed.");
         }
+    }
+    @PostMapping
+    private ResponseEntity<String> handlePostHealthzStatus(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+    }
+
+    @DeleteMapping
+    private ResponseEntity<String> handleDeleteHealthzStatus(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+
+    }
+    @PutMapping
+    private ResponseEntity<String> handlePutHealthzStatus(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+    }
+
+    @PatchMapping
+    private ResponseEntity<String> handlePatchHealthzStatus(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+    }
+
+    @RequestMapping(method = RequestMethod.HEAD)
+    private ResponseEntity<String>  handleHeadHealthzStatus(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+    }
+    @RequestMapping(method = RequestMethod.OPTIONS)
+    private ResponseEntity<String>  handleOptionsHealthzStatus(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
     }
 
 }
