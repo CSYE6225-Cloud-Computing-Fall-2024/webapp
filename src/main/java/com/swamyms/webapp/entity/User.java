@@ -1,31 +1,51 @@
 package com.swamyms.webapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 
+@AllArgsConstructor
+@Getter
+@Setter
 @Entity
-@Table(name = "user")
+@Table(name = "webapp_user")
 public class User {
 
     //define fields
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
-    private int id;
-    @Column(name = "first_name")
+    private String id;
+
+    @Column(name = "first_name", nullable = false)
     private String firstName;
-    @Column(name = "last_name")
+
+    @Column(name = "last_name", nullable = false)
     private String lastName;
-    @Column(name = "password")
+
+    @Column(name = "password", nullable = false)
+//    @ToString.Exclude
+    @JsonIgnore //ignore password property from Jackson mapper
     private String password;
-    @Column(name = "email")
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
-    @Column(name = "account_created")
-    private Date accountCreated;
+
+    @ReadOnlyProperty
+    @Column(name = "account_created", updatable = false)
+    private LocalDateTime accountCreated;
+
+    @ReadOnlyProperty
     @Column(name = "account_updated")
-    private Date accountUpdated;
+    private LocalDateTime accountUpdated;
 
 
     //define constructors
@@ -33,85 +53,16 @@ public class User {
     public User() {
     }
 
-    public User(String firstName, String lastName, String password, String email, Date accountCreated, Date accountUpdated) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.password = password;
-        this.email = email;
-        this.accountCreated = accountCreated;
-        this.accountUpdated = accountUpdated;
+    @PrePersist
+    protected void onCreate() {
+        accountCreated = LocalDateTime.now();
+        accountUpdated = LocalDateTime.now();
     }
 
-    //define getters//setters
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Date getAccountCreated() {
-        return accountCreated;
-    }
-
-    public void setAccountCreated(Date accountCreated) {
-        this.accountCreated = accountCreated;
-    }
-
-    public Date getAccountUpdated() {
-        return accountUpdated;
-    }
-
-    public void setAccountUpdated(Date accountUpdated) {
-        this.accountUpdated = accountUpdated;
+    @PreUpdate
+    protected void onUpdate() {
+        accountUpdated = LocalDateTime.now();
     }
 
 
-    //define toString()
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", accountCreated=" + accountCreated +
-                ", accountUpdated=" + accountUpdated +
-                '}';
-    }
 }
