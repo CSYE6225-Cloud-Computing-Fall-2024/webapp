@@ -2,9 +2,9 @@ package com.swamyms.webapp.dao;
 
 import com.swamyms.webapp.entity.User;
 
-import java.util.List;
-
 public interface UserDAO {
 
-    List<User> findAll();
+    User save(User theUser);
+
+    User findByEmail(String email);
 }
