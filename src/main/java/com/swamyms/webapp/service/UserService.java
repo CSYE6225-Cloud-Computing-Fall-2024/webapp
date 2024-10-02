@@ -2,8 +2,10 @@ package com.swamyms.webapp.service;
 
 import com.swamyms.webapp.entity.User;
 
-import java.util.List;
-
 public interface UserService {
-    List<User> findAll();
+    User save(User theUser);
+
+    User getUserByEmail(String email);
+
+    boolean authenticateUser(String email, String password);
 }
