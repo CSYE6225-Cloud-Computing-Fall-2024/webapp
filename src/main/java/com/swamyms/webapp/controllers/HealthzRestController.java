@@ -40,14 +40,8 @@ public class HealthzRestController {
         // Check if there are any query parameters or a request body
         if ((params != null && !params.isEmpty()) || (requestBody != null && !requestBody.isEmpty())) {
             // Return 400 Bad Request if any query parameters or request body is present
-            ApiMessage errorResponse = new ApiMessage(
-                    HttpStatus.BAD_REQUEST.value(),
-                    new Date(),
-                    "Bad Request",
-                    "No parameters or request body allowed."
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers)
-                    .body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers).build();
+//                    .body(errorResponse);
         }
         try {
             // Execute a simple query to check the health of the database
@@ -55,19 +49,18 @@ public class HealthzRestController {
             query.getSingleResult();
 
             // Return 200 OK with cache control headers
-            ApiMessage successResponse = new ApiMessage(
-                    HttpStatus.OK.value(),
-                    new Date(),
-                    "Good Request",
-                    "Successfully Get Request Executed for Healthz Endpoint"
-            );
+//            ApiMessage successResponse = new ApiMessage(
+//                    HttpStatus.OK.value(),
+//                    new Date(),
+//                    "Good Request",
+//                    "Successfully Get Request Executed for Healthz Endpoint"
+//            );
 
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .headers(headers)
-                    .body(successResponse);
+                    .headers(headers).build();
         }catch (PersistenceException pe){
-            throw new DataBaseConnectionException("Data base connection failed.");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).headers(headers).build();
         }
     }
     @PostMapping
@@ -75,7 +68,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
     @DeleteMapping
@@ -83,7 +76,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
 
     }
     @PutMapping
@@ -91,7 +84,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
     @PatchMapping
@@ -99,7 +92,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
     @RequestMapping(method = RequestMethod.HEAD)
@@ -107,14 +100,14 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
     @RequestMapping(method = RequestMethod.OPTIONS)
     private ResponseEntity<String>  handleOptionsHealthzStatus(){
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-        throw new MethodNotAllowedException("Method not Allowed for Healthz Endpoint");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
 }

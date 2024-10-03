@@ -31,46 +31,29 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public ApiMessage resourceNotFoundException(NoResourceFoundException ex, WebRequest request) {
+    public void resourceNotFoundException(NoResourceFoundException ex) throws NoResourceFoundException {
 
-        return new ApiMessage(
-                HttpStatus.NOT_FOUND.value(),
-                new Date(),
-                ex.getMessage(),
-                request.getDescription(false));
+        throw ex;
     }
 
     @ExceptionHandler(DataBaseConnectionException.class)
     @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE)
-    public ApiMessage dataBaseConnectionException(DataBaseConnectionException ex, WebRequest request) {
+    public void dataBaseConnectionException(DataBaseConnectionException ex, WebRequest request) {
 
-        return new ApiMessage(
-                HttpStatus.SERVICE_UNAVAILABLE.value(),
-                new Date(),
-                ex.getMessage(),
-                request.getDescription(false));
+        throw ex;
     }
 
     @ExceptionHandler(MethodNotAllowedException.class)
     @ResponseStatus(value = HttpStatus.METHOD_NOT_ALLOWED)
-    public ApiMessage methodNotAllowedException(MethodNotAllowedException ex, WebRequest request){
-        return  new ApiMessage(
-                HttpStatus.METHOD_NOT_ALLOWED.value(),
-                new Date(),
-                ex.getMessage(),
-                request.getDescription(false)
-        );
+    public void methodNotAllowedException(MethodNotAllowedException ex, WebRequest request){
+        throw ex;
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiMessage globalExceptionHandler(Exception ex, WebRequest request) {
+    public void globalExceptionHandler(Exception ex, WebRequest request) throws Exception {
         ex.printStackTrace();
 
-        return new ApiMessage(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                new Date(),
-                ex.getMessage(),
-                request.getDescription(false));
+        throw ex;
     }
 }
