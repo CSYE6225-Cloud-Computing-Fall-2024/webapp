@@ -18,4 +18,16 @@ public class UserValidations {
 
         return matcher.matches();
     }
+
+    public boolean isValidPassword(String password) {
+        // Define your password policy here
+        if (password == null) {
+            return false;
+        }
+
+        // Example validation: At least 8 characters, contains uppercase, lowercase, number, and special character
+        String passwordPattern = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+
+        return password.matches(passwordPattern);
+    }
 }
