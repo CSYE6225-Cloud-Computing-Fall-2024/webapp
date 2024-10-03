@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MethodNotAllowedException extends RuntimeException {
-    private final String message;
+//    private final String message;
 }
