@@ -3,6 +3,8 @@ package com.swamyms.webapp.service;
 import com.swamyms.webapp.config.SecurityConfig;
 import com.swamyms.webapp.dao.UserDAO;
 import com.swamyms.webapp.entity.User;
+import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
+import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,9 +41,13 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean authenticateUser(String email, String password) {
-        User user = userDAO.findByEmail(email);
-        if (user == null) return false;
-        String dbPassword = user.getPassword();
-        return securityConfig.authenticatePassword(password, dbPassword);
+        try {
+            User user = userDAO.findByEmail(email);
+            if (user == null) return false;
+            String dbPassword = user.getPassword();
+            return securityConfig.authenticatePassword(password, dbPassword);
+        }catch (PersistenceException ex){
+            throw new DataBaseConnectionException();
+        }
     }
 }

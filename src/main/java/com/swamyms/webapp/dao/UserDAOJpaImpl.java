@@ -2,8 +2,9 @@ package com.swamyms.webapp.dao;
 
 import com.swamyms.webapp.config.SecurityConfig;
 import com.swamyms.webapp.entity.User;
+import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -39,8 +40,13 @@ public class UserDAOJpaImpl implements UserDAO {
     public User save(User theUser) {
         //save user if (id==0) then insert/save else update
         //return the dbUser
-        theUser.setPassword(securityConfig.encodePassword(theUser.getPassword()));
-        return entityManager.merge(theUser);
+        try {
+            theUser.setPassword(securityConfig.encodePassword(theUser.getPassword()));
+            return entityManager.merge(theUser);
+        } catch (PersistenceException e) {
+            throw new DataBaseConnectionException();
+        }
+
     }
 
     @Override
@@ -51,8 +57,8 @@ public class UserDAOJpaImpl implements UserDAO {
             TypedQuery<User> typedQuery = entityManager.createQuery(query, User.class);
             typedQuery.setParameter("email", email);
             return typedQuery.getSingleResult();
-        } catch (NoResultException e) {
-            return null;  // or throw a custom exception
+        } catch (PersistenceException e) {
+            throw new DataBaseConnectionException();
         }
     }
 }
