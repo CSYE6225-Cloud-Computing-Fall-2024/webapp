@@ -1,7 +1,8 @@
 name: GitHub Unit Testing Workflow
 
-on: 
-  workflow_dispatch
+on:
+  push:
+    branches: [ "feature/Assignment02" ]
 
 permissions:
   checks: write
