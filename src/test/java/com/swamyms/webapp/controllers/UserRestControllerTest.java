@@ -91,11 +91,17 @@ class UserRestControllerTest {
     void getUser_withParams_shouldReturnBadRequest() {
         // Arrange
         HashMap<String, String> params = new HashMap<>();
-        params.put("testParam", "testValue");
+        params.put("fdg", "fdfg");
 
         HttpHeaders headers = new HttpHeaders();
         String requestBody = null;
 
+        // Set the authorization header
+        String auth = "Basic " + Base64.getEncoder().encodeToString("1@mail.com:ffffff@1A".getBytes());
+        headers.set("Authorization", auth);
+
+        // Mock the userService.authenticateUser method
+        when(userService.authenticateUser("1@mail.com", "ffffff@1A")).thenReturn(true);
         // Act
         ResponseEntity<?> response = userRestController.getUser(params, headers, requestBody);
 
@@ -109,6 +115,13 @@ class UserRestControllerTest {
         HashMap<String, String> params = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
         String requestBody = "testBody";
+
+        // Set the authorization header
+        String auth = "Basic " + Base64.getEncoder().encodeToString("1@mail.com:ffffff@1A".getBytes());
+        headers.set("Authorization", auth);
+
+        // Mock the userService.authenticateUser method
+        when(userService.authenticateUser("1@mail.com", "ffffff@1A")).thenReturn(true);
 
         // Act
         ResponseEntity<?> response = userRestController.getUser(params, headers, requestBody);
