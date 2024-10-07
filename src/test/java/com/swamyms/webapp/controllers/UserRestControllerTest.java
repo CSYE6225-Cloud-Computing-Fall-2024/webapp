@@ -67,7 +67,7 @@ class UserRestControllerTest {
 
     //Successful get request
     @Test
-    void getUserSuccessfull() throws JsonProcessingException {
+    void getUserSuccessfull() {
 
         // Arrange
         HashMap<String, String> params = new HashMap<>();
@@ -281,7 +281,7 @@ class UserRestControllerTest {
     }
 
     @Test
-    void createUser_MissingPropertiesInRequestBody_ShouldReturnBadRequest() throws Exception {
+    void createUser_MissingPropertiesInRequestBody_ShouldReturnBadRequest() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
@@ -295,7 +295,7 @@ class UserRestControllerTest {
     }
 
     @Test
-    void createUser_NullPropertiesInRequestBody_ShouldReturnBadRequest() throws Exception {
+    void createUser_NullPropertiesInRequestBody_ShouldReturnBadRequest() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
@@ -309,7 +309,7 @@ class UserRestControllerTest {
     }
 
     @Test
-    void createUser_EmptyPropertiesInRequestBody_ShouldReturnBadRequest() throws Exception {
+    void createUser_EmptyPropertiesInRequestBody_ShouldReturnBadRequest() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
@@ -322,7 +322,7 @@ class UserRestControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
     @Test
-    void createUser_ContainsRestrictedFields_ShouldReturnBadRequest() throws Exception {
+    void createUser_ContainsRestrictedFields_ShouldReturnBadRequest() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
@@ -356,7 +356,7 @@ class UserRestControllerTest {
     }
 
     @Test
-    void createUser_InvalidEmail_ShouldReturnBadRequest() throws Exception {
+    void createUser_InvalidEmail_ShouldReturnBadRequest() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
@@ -375,7 +375,7 @@ class UserRestControllerTest {
     }
 
     @Test
-    void createUser_InvalidPassword_ShouldReturnBadRequestWithMessage() throws Exception {
+    void createUser_InvalidPassword_ShouldReturnBadRequestWithMessage() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
@@ -396,7 +396,7 @@ class UserRestControllerTest {
     }
 
     @Test
-    void createUser_ValidEmailAndPassword_ShouldProceed() throws Exception {
+    void createUser_ValidEmailAndPassword_ShouldProceed() {
         // Arrange
         HashMap<String, String> param = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
