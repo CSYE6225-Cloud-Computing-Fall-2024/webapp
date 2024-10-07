@@ -4,6 +4,7 @@ import com.swamyms.webapp.config.SecurityConfig;
 import com.swamyms.webapp.entity.User;
 import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,10 @@ public class UserDAOJpaImpl implements UserDAO {
             TypedQuery<User> typedQuery = entityManager.createQuery(query, User.class);
             typedQuery.setParameter("email", email);
             return typedQuery.getSingleResult();
-        } catch (PersistenceException e) {
+        }catch(NoResultException e){
+            return null;
+        }
+        catch (PersistenceException e) {
             throw new DataBaseConnectionException();
         }
     }
