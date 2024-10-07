@@ -1,0 +1,18 @@
+name: GitHub Unit Testing Workflow
+
+on: 
+  workflow_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: UserRestControllerTest Testing
+        uses: ./gradlew test --tests "com.swamyms.webapp.controllers.UserRestControllerTest"
+     
