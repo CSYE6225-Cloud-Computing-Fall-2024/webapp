@@ -33,4 +33,8 @@ jobs:
         run: ./gradlew build
 
       - name: UserRestControllerTest Testing
+        env: # Set environment variables for the test
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         uses: ./gradlew test --tests "com.swamyms.webapp.controllers.UserRestControllerTest"
