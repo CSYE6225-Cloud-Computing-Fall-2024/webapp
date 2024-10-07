@@ -15,4 +15,3 @@ jobs:
     steps:
       - name: UserRestControllerTest Testing
         uses: ./gradlew test --tests "com.swamyms.webapp.controllers.UserRestControllerTest"
-     
