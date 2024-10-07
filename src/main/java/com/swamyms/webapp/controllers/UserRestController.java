@@ -192,7 +192,7 @@ public class UserRestController {
                 }
 
                 //check for User Password validation
-                if (!userValidations.isValidPassword(queryUser.getPassword())) {
+                if (queryUser.getPassword()!= null && !userValidations.isValidPassword(queryUser.getPassword())) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                             .body("Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.");
                 }
