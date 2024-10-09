@@ -31,6 +31,11 @@ jobs:
 
 #      - name: Build with Gradle Wrapper
 #        run: ./gradlew build
+      - name: Setup environmental variable for Spring Boot
+        run: |
+          echo "DB_URL="${{ secrets.DB_URL }}" >> $GITHUB_ENV
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
 
       - name: UserRestControllerTest Testing
         env: # Set environment variables for the test
