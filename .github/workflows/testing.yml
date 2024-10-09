@@ -53,4 +53,4 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}        # Database name from GitHub Secrets
           DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
-        run: ./gradlew test --stacktrace
+        run: ./gradlew test
