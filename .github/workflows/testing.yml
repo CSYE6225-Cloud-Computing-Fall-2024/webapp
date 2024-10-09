@@ -1,8 +1,8 @@
 name: Integration Tests
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [ "feature/Assignment02" ]
 
 jobs:
   run-spring-boot:
