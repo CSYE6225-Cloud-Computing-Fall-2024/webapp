@@ -27,13 +27,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install postgresql postgresql-contrib
           sudo systemctl start postgresql.service
-          sudo -u postgres psql -c "CREATE DATABASE clouddb;"
-          sudo -u postgres psql -c "CREATE USER clouduser WITH PASSWORD '${{secrets.DB_PASSWORD}}';"
-          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE clouddb TO clouduser;"
 
       # Start Spring Boot and run integration tests
       - name: Run Spring Boot
         run: |
-          ./gradlew bootRun -Dspring.datasource.url=jdbc:postgresql://localhost:5432/clouddb -Dspring.datasource.username=clouduser -Dspring.datasource.password=${{secrets.DB_PASSWORD}} -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.jpa.hibernate.ddl-auto=update -Dspring.datasource.hikari.connection-timeout=20000 &
+          ./gradlew bootRun -Dspring.datasource.url=jdbc:postgresql://localhost:5432/webapp -Dspring.datasource.username=postgres -Dspring.datasource.password=${{secrets.DB_PASSWORD}} -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.jpa.hibernate.ddl-auto=update -Dspring.datasource.hikari.connection-timeout=20000 &
           sleep 60
           ./gradlew test
