@@ -5,6 +5,7 @@ import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionExcepti
 import com.swamyms.webapp.exceptionhandling.exceptions.MethodNotAllowedException;
 import com.swamyms.webapp.exceptionhandling.model.ApiMessage;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,44 +17,32 @@ import java.util.Date;
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
-//    @ExceptionHandler(ResourceNotFoundException.class)
-//    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-//    public ApiMessage resourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-//
-//        return new ApiMessage(
-//                HttpStatus.NOT_FOUND.value(),
-//                new Date(),
-//                ex.getMessage(),
-//                request.getDescription(false));
-//    }
-
-
-
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public void resourceNotFoundException(NoResourceFoundException ex) throws NoResourceFoundException {
+    public ResponseEntity<Object> resourceNotFoundException(NoResourceFoundException ex) throws NoResourceFoundException {
 
-        throw ex;
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(DataBaseConnectionException.class)
     @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE)
-    public void dataBaseConnectionException(DataBaseConnectionException ex, WebRequest request) {
-
-        throw ex;
+    public ResponseEntity<Object> handleDataBaseConnectionException(DataBaseConnectionException ex, WebRequest request) {
+        // Log the exception message for debugging purposes
+        System.err.println("Database connection error: " + ex.getMessage());
+        return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(MethodNotAllowedException.class)
     @ResponseStatus(value = HttpStatus.METHOD_NOT_ALLOWED)
-    public void methodNotAllowedException(MethodNotAllowedException ex, WebRequest request){
-        throw ex;
+    public ResponseEntity<Object> methodNotAllowedException(MethodNotAllowedException ex, WebRequest request){
+        return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-    public void globalExceptionHandler(Exception ex, WebRequest request) throws Exception {
+    public ResponseEntity<Object> globalExceptionHandler(Exception ex, WebRequest request) throws Exception {
         ex.printStackTrace();
 
-        throw ex;
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
