@@ -20,11 +20,16 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          DB_URL: ${{ secrets.DB_URL }}
-          POSTGRES_USER: ${{ secrets.DB_USERNAME }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_URL: ${{ secrets.DB_URL }}        # Database name from GitHub Secrets
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U DB_USERNAME"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -43,4 +48,8 @@ jobs:
 #        run: ./gradlew build
 
       - name: UserRestControllerTest Testing
+        env:
+          DB_URL: ${{ secrets.DB_URL }}        # Database name from GitHub Secrets
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
         run: ./gradlew test --stacktrace
