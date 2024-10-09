@@ -58,8 +58,8 @@ class WebappApplicationTests {
 	@Test
 	void testCreateUser() throws Exception {
 		AddUser newUser = new AddUser();
-		newUser.setEmail("TestingWithGradle@example.com");
-		newUser.setPassword("TestingWithGradle123!");
+		newUser.setEmail("TestingWithGAW@example.com");
+		newUser.setPassword("TestingWithGAW123!");
 		newUser.setFirst_name("TestingWithGradle");
 		newUser.setLast_name("TestingWithGradle");
 
