@@ -31,6 +31,6 @@ jobs:
       # Start Spring Boot and run integration tests
       - name: Run Spring Boot
         run: |
-          ./gradlew bootRun -Dspring.datasource.url=jdbc:postgresql://localhost:5432/webapp -Dspring.datasource.username=postgres -Dspring.datasource.password=${{secrets.DB_PASSWORD}} -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.jpa.hibernate.ddl-auto=update -Dspring.datasource.hikari.connection-timeout=20000 &
+          ./gradlew bootRun -Dspring.datasource.url=jdbc:postgresql://localhost:5432/webapp -Dspring.datasource.username=postgres -Dspring.datasource.password=admin -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.jpa.hibernate.ddl-auto=update -Dspring.datasource.hikari.connection-timeout=20000 &
           sleep 60
           ./gradlew test
