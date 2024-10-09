@@ -20,9 +20,10 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          DB_URL: ${{ secrets.DB_URL }}        # Database name from GitHub Secrets
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
+#          POSTGRES_URL: ${{ secrets.DB_URL }}
+          POSTGRES_USER: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
+          POSTGRES_DB: ${{ secrets.DB_NAME }}       # Database name from GitHub Secrets
         ports:
           - 5432:5432
         options: >-
