@@ -21,7 +21,7 @@ jobs:
             distribution: temurin
           # Build Spring boot project and remove old artifacts
         - name: Build project
-          run: ./gradlew clean build -x test
+          run: ./gradlew bootJar
           # Setup Packer
         - name: Setup Packer
           uses: hashicorp/setup-packer@main
