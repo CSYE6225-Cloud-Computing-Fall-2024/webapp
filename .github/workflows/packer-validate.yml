@@ -30,7 +30,7 @@ jobs:
           run: packer init ./webapp-main.pkr.hcl
         # Format packer files
         - name: Packer format
-          run: packer fmt -check ./webapp-main.pkr.hcl
+          run: packer fmt -diff -check ./webapp-main.pkr.hcl
         # Validate Packer Files
         - name: Packer validate
           run: packer validate ./webapp-main.pkr.hcl
