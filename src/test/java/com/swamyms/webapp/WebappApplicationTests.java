@@ -72,7 +72,7 @@ class WebappApplicationTests {
 		String auth = "Basic " + Base64.getEncoder().encodeToString("1@mail.com:ffffff@1A".getBytes());
 		headers.set("Authorization", auth);
 		// Mock the userService.authenticateUser method
-		when(userService.authenticateUser("1@mail.com", "ffffff@1A")).thenReturn(true);
+		when(userService.authenticateUser("11@mail.com", "ffffff@1A")).thenReturn(true);
 		// Act
 		ResponseEntity<?> response = userRestController.getUser(params, headers, null);
 		// Assert
@@ -123,7 +123,7 @@ class WebappApplicationTests {
 		String auth = "Basic " + Base64.getEncoder().encodeToString("1@mail.com:fff11fff@1A".getBytes());
 		headers.set("Authorization", auth);
 		// Mock the userService.authenticateUser method
-		when(userService.authenticateUser("1@mail.com", "ffffff@1A")).thenReturn(true);
+		when(userService.authenticateUser("11@mail.com", "ffffff@1A")).thenReturn(true);
 		// Act
 		ResponseEntity<?> response = userRestController.getUser(params, headers, null);
 		// Assert
