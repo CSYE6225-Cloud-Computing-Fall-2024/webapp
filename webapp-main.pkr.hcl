@@ -42,7 +42,7 @@ variable "jar_file" {
 
 variable "DB_USERNAME" {
   type    = string
-  default = "swamyuser"
+  default =  "swamyuser"
 }
 
 variable "DB_PASSWORD" {
