@@ -117,7 +117,7 @@ build {
   # Copy Spring Boot JAR file
   provisioner "file" {
     source      = var.jar_file
-    destination =   "/home/ubuntu/spring-boot-app.jar"
+    destination = "/home/ubuntu/spring-boot-app.jar"
   }
 
   # Set permissions on the JAR file
