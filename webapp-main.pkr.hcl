@@ -123,7 +123,7 @@ build {
   # Set permissions on the JAR file
   provisioner "shell" {
     inline = [
-      "sudo chown csye6225:csye6225 /home/csye6225/spring-boot-app.jar"
+      "sudo chown csye6225:csye6225 /home/ubuntu/spring-boot-app.jar"
     ]
   }
 
