@@ -105,6 +105,10 @@ build {
       "sudo -u postgres psql -c \"GRANT CREATE ON SCHEMA public TO ${var.DB_USERNAME};\"",
       "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} CREATEDB;\"",
 
+      # Create user csye6225 and group
+      "sudo groupadd csye6225",
+      "sudo useradd -r -g csye6225 -s /usr/sbin/nologin csye6225",
+
       # Clean up unnecessary files to reduce image size
       "sudo apt-get clean"
     ]
@@ -114,6 +118,13 @@ build {
   provisioner "file" {
     source      = var.jar_file
     destination = "/home/ubuntu/spring-boot-app.jar"
+  }
+
+  # Set permissions on the JAR file
+  provisioner "shell" {
+    inline = [
+      "sudo chown csye6225:csye6225 /home/csye6225/spring-boot-app.jar"
+    ]
   }
 
   # Create a systemd service for Spring Boot with environment variables.
