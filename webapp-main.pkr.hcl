@@ -83,6 +83,20 @@ build {
   name    = "webapp-packer"
   sources = ["source.amazon-ebs.my-ami"]
 
+  # First provisioner: Check if git is installed, and remove it if found
+  provisioner "shell" {
+    inline = [
+      "if which git >/dev/null; then",
+      "  echo 'Git is installed, removing it...'",
+      "  sudo apt-get remove -y git",
+      "  sudo apt-get autoremove -y",
+      "  echo 'Git has been removed.'",
+      "else",
+      "  echo 'Git is not installed, proceeding.'",
+      "fi"
+    ]
+  }
+
   provisioner "shell" {
     inline = [
       "sudo apt-get update",
