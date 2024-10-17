@@ -95,11 +95,20 @@ build {
       "sudo systemctl start postgresql",
 
       # Configure PostgreSQL
+      // "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
+      // "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
+      // "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
+      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
+      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
       "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
       "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
       "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
       "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
+      "sudo -u postgres psql -c \"\\c ${var.DB_NAME}\"",
       "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
+      "sudo -u postgres psql -c \"ALTER SCHEMA public OWNER TO ${var.DB_USERNAME};\"",
+      "sudo -u postgres psql -c \"GRANT CREATE ON SCHEMA public TO ${var.DB_USERNAME};\"",
+      "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} CREATEDB;\"",
 
       # Clean up unnecessary files to reduce image size
       "sudo apt-get clean"
