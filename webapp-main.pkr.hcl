@@ -97,12 +97,9 @@ build {
       # Configure PostgreSQL
       "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
       "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
+      "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
       "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
       "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
-      "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${var.DB_USERNAME};\"",
-      "sudo -u postgres psql -c \"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO ${var.DB_USERNAME};\"",
-
-
 
       # Clean up unnecessary files to reduce image size
       "sudo apt-get clean"
