@@ -111,7 +111,7 @@ build {
     destination = "/home/ubuntu/spring-boot-app.jar"
   }
 
-  # Create a systemd service for Spring Boot with environment variables
+  # Create a systemd service for Spring Boot with environment variables.
   provisioner "shell" {
     inline = [
       "echo '[Unit]' | sudo tee /etc/systemd/system/springbootapp.service",
