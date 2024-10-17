@@ -121,7 +121,7 @@ build {
       "echo 'Environment=DB_URL=${var.DB_URL}' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Environment=DB_USERNAME=${var.DB_USERNAME}' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Environment=DB_PASSWORD=${var.DB_PASSWORD}' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar --spring.main.banner-mode=off --spring.application.name=webapp --spring.datasource.url=$$DB_URL --spring.datasource.username=$$DB_USERNAME --spring.datasource.password=$$DB_PASSWORD --spring.jpa.show-sql=true --spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true --spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect --spring.jpa.hibernate.ddl-auto=update' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
 
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo '[Install]' | sudo tee -a /etc/systemd/system/springbootapp.service",
