@@ -83,10 +83,6 @@ build {
   name    = "webapp-packer"
   sources = ["source.amazon-ebs.my-ami"]
 
-  build {
-  name    = "webapp-packer"
-  sources = ["source.amazon-ebs.my-ami"]
-
   # First provisioner: Check if git is installed, and remove it if found
   provisioner "shell" {
     inline = [
