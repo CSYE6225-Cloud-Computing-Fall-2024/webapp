@@ -81,7 +81,7 @@ jobs:
       - name: Retrieve AMI ID
         id: get-ami-id
         run: |
-          AMI_ID=$(aws ec2 describe-images --owners self --filters 'Name=name,Values=webapp-*' --query 'Images[0].ImageId' --output text)
+          AMI_ID=$(aws ec2 describe-images --owners self --filters 'Name=name,Values=Swamy_Webapp-*' --query 'Images[0].ImageId' --output text)
           if [ "$AMI_ID" == "None" ]; then
             echo "Error: No AMI found matching the name pattern."
             exit 1
