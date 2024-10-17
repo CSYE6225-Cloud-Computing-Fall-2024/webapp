@@ -22,6 +22,9 @@ jobs:
           # Build Spring boot project and remove old artifacts
         - name: Build project
           run: ./gradlew bootJar
+          #Copy Jar file from local to workspace (ROOT.jar)
+        - name: Rename and Move Jar File
+          run: mv build/libs/webapp-0.0.1-SNAPSHOT.jar ROOT.jar
           # Setup Packer
         - name: Setup Packer
           uses: hashicorp/setup-packer@main
