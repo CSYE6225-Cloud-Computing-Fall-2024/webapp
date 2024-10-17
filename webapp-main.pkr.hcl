@@ -95,11 +95,6 @@ build {
       "sudo systemctl start postgresql",
 
       # Configure PostgreSQL
-      // "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
-      // "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
-      // "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
-      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
-      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
       "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
       // "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
       "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
@@ -132,8 +127,6 @@ build {
       "echo 'Environment=DB_USERNAME=${var.DB_USERNAME}' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Environment=DB_PASSWORD=${var.DB_PASSWORD}' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      # Adding Hibernate ddl-auto as a system property
-      // "echo 'ExecStart=/usr/bin/java -jar -Dspring.jpa.hibernate.ddl-auto=update /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo '[Install]' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/springbootapp.service",

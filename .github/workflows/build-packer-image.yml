@@ -75,7 +75,19 @@ jobs:
         run: packer fmt -check ./webapp-main.pkr.hcl
       # Validate Packer Files
       - name: Packer validate
-        run: packer validate ./webapp-main.pkr.hcl
+        run: |
+          packer build \
+            -var "aws_region=${{ secrets.AWS_REGION }}" \
+            -var "vpc_id=${{ secrets.VPC_ID }}" \
+            -var "source_ami=${{ secrets.SOURCE_AMI }}" \
+            -var "ssh_username=ubuntu" \
+            -var "subnet_id=${{ secrets.SUBNET_ID }}" \
+            -var "jar_file=ROOT.jar" \
+            -var "DB_USERNAME=${{ secrets.DB_USERNAME }}" \
+            -var "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
+            -var "DB_NAME=${{ secrets.DB_NAME }}" \
+            -var "DB_URL=${{ secrets.DB_URL }}" \
+            ./webapp-main.pkr.hcl
       - name: Packer Build
         run: packer build ./webapp-main.pkr.hcl
       - name: Retrieve AMI ID
