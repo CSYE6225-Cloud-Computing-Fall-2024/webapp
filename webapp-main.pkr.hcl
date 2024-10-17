@@ -126,6 +126,17 @@ build {
       "sudo chown csye6225:csye6225 /home/ubuntu/spring-boot-app.jar"
     ]
   }
+  # Check if git is installed
+  provisioner "shell" {
+    inline = [
+      "if which git >/dev/null; then",
+      "  echo 'Error: git is installed in the AMI.'",
+      "  exit 1",
+      "else",
+      "  echo 'git is not installed, proceeding.'",
+      "fi"
+    ]
+  }
 
   # Create a systemd service for Spring Boot with environment variables.
   provisioner "shell" {
