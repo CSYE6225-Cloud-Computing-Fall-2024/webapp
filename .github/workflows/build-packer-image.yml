@@ -63,7 +63,7 @@ jobs:
       #Copy Jar file from local to workspace (ROOT.jar)
       - name: Rename and Move Jar File
         run: mv build/libs/webapp-0.0.1-SNAPSHOT.jar ROOT.jar
-        
+
       # Setup Packer
       - name: Setup Packer
         uses: hashicorp/setup-packer@main
@@ -77,4 +77,18 @@ jobs:
       - name: Packer validate
         run: packer validate ./webapp-main.pkr.hcl
       - name: Packer Build
-        run: packer build ./webapp-main.pkr.hcl 
+        run: packer build ./webapp-main.pkr.hcl
+      - name: Retrieve AMI ID
+        id: get-ami-id
+        run: |
+          AMI_ID=$(aws ec2 describe-images --owners self --filters 'Name=name,Values=webapp-*' --query 'Images[0].ImageId' --output text)
+          if [ "$AMI_ID" == "None" ]; then
+            echo "Error: No AMI found matching the name pattern."
+            exit 1
+          fi
+          echo "AMI_ID=$AMI_ID"
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+ 
+      - name: Share AMI with DEMO Account
+        run: |
+          aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
