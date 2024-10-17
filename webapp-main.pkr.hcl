@@ -37,7 +37,7 @@ variable "subnet_id" {
 
 variable "jar_file" {
   type    = string
-  default = "build/libs/webapp-0.0.1-SNAPSHOT.jar" # Adjust this if you know the exact JAR filename
+  default = "ROOT.jar" # Adjust this if you know the exact JAR filename
 }
 
 variable "DB_USERNAME" {
