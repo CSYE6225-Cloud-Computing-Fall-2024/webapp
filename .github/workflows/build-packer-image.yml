@@ -75,6 +75,8 @@ jobs:
         run: packer fmt -check ./webapp-main.pkr.hcl
       # Validate Packer Files
       - name: Packer validate
+        run: packer validate ./webapp-main.pkr.hcl
+      - name: Packer Build
         run: |
           packer build \
             -var "aws_region=${{ secrets.AWS_REGION }}" \
@@ -88,8 +90,6 @@ jobs:
             -var "DB_NAME=${{ secrets.DB_NAME }}" \
             -var "DB_URL=${{ secrets.DB_URL }}" \
             ./webapp-main.pkr.hcl
-      - name: Packer Build
-        run: packer build ./webapp-main.pkr.hcl
       - name: Retrieve AMI ID
         id: get-ami-id
         run: |
