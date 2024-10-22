@@ -59,7 +59,7 @@ variable "DB_URL" {
 
 source "amazon-ebs" "my-ami" {
   region          = "us-east-1"
-  ami_name        = "Swamy_Webapp-${formatdate("YYYY_MM_DD-HHmmss", timestamp())}"
+  ami_name        =     "Swamy_Webapp-${formatdate("YYYY_MM_DD-HHmmss", timestamp())}"
   ami_description = "AMI for CSYE6225 Cloud"
   instance_type   = "t2.small"
   source_ami      = "${var.source_ami}"
