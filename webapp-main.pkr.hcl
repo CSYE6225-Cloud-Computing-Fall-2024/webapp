@@ -64,7 +64,7 @@ source "amazon-ebs" "my-ami" {
   instance_type   = "t2.small"
   source_ami      = "${var.source_ami}"
   ssh_username    = "${var.ssh_username}"
-  subnet_id       = "${var.subnet_id}"
+  subnet_id       = "${var.bad}"
 
   launch_block_device_mappings {
     delete_on_termination = true
