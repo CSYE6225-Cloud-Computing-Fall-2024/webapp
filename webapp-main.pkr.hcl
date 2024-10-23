@@ -37,25 +37,25 @@ variable "jar_file" {
   default = "ROOT.jar"
 }
 
-variable "DB_USERNAME" {
-  type    = string
-  default = "postgres"
-}
+// variable "DB_USERNAME" {
+//   type = string
+//   // default = "postgres"
+// }
 
-variable "DB_PASSWORD" {
-  type    = string
-  default = "admin"
-}
+// variable "DB_PASSWORD" {
+//   type = string
+//   // default = "admin"
+// }
 
-variable "DB_NAME" {
-  type    = string
-  default = "webapp"
-}
+// variable "DB_NAME" {
+//   type = string
+//   // default = "webapp"
+// }
 
-variable "DB_URL" {
-  type    = string
-  default = "jdbc:postgresql://localhost:5432/webapp"
-}
+// variable "DB_URL" {
+//   type = string
+//   // default = "jdbc:postgresql://localhost:5432/webapp"
+// }
 
 source "amazon-ebs" "my-ami" {
   region          = "us-east-1"
@@ -102,22 +102,23 @@ build {
       "sudo apt-get update",
       "echo 'Installing JDK-17'",
       "sudo apt-get install -y openjdk-17-jdk",
-      "echo 'Installing PostgreSQL 16'",
-      "sudo apt-get install -y postgresql-16",
-      "echo 'Enabling and starting PostgreSQL'",
-      "sudo systemctl enable postgresql",
-      "sudo systemctl start postgresql",
 
-      # Configure PostgreSQL
-      "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
-      // "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
-      "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
-      "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
-      "sudo -u postgres psql -c \"\\c ${var.DB_NAME}\"",
-      "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
-      "sudo -u postgres psql -c \"ALTER SCHEMA public OWNER TO ${var.DB_USERNAME};\"",
-      "sudo -u postgres psql -c \"GRANT CREATE ON SCHEMA public TO ${var.DB_USERNAME};\"",
-      "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} CREATEDB;\"",
+      // "echo 'Installing PostgreSQL 16'",
+      // "sudo apt-get install -y postgresql-16",
+      // "echo 'Enabling and starting PostgreSQL'",
+      // "sudo systemctl enable postgresql",
+      // "sudo systemctl start postgresql",
+
+      // # Configure PostgreSQL
+      // "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
+      // // "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
+      // "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
+      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
+      // "sudo -u postgres psql -c \"\\c ${var.DB_NAME}\"",
+      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
+      // "sudo -u postgres psql -c \"ALTER SCHEMA public OWNER TO ${var.DB_USERNAME};\"",
+      // "sudo -u postgres psql -c \"GRANT CREATE ON SCHEMA public TO ${var.DB_USERNAME};\"",
+      // "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} CREATEDB;\"",
 
       # Create user csye6225 and group
       "sudo groupadd csye6225",
@@ -128,6 +129,8 @@ build {
     ]
   }
 
+  # Check if user exists, then update ownership
+
   # Copy Spring Boot JAR file
   provisioner "file" {
     source      = var.jar_file
@@ -137,9 +140,25 @@ build {
   # Set permissions on the JAR file
   provisioner "shell" {
     inline = [
-      "sudo chown csye6225:csye6225 /home/ubuntu/spring-boot-app.jar"
+      "if id -u csye6225 >/dev/null 2>&1; then",
+      "  echo \"User 'csye6225' exists, updating application permissions....\"",
+      "  sudo chown -R csye6225:csye6225 /home/ubuntu/spring-boot-app.jar",
+      "  echo \"Setting permissions so only csye6225 user and group can access the JAR file...\"",
+      "  sudo chmod 740 /home/ubuntu/spring-boot-app.jar", # Permissions: User (read, write, execute), Group (read-only), Others (no access)
+      "else",
+      "  echo \"User doesn't exist, ownership cannot be updated...exiting\"",
+      "  exit 1",
+      "fi"
     ]
   }
+
+  // # Set permissions on the JAR file
+  // provisioner "shell" {
+  //   inline = [
+  //     "sudo chown csye6225:csye6225 /home/ubuntu/spring-boot-app.jar"
+  //   ]
+  // }
+
   # Check if git is installed
   provisioner "shell" {
     inline = [
@@ -159,9 +178,12 @@ build {
       "echo 'Description=Spring Boot Application' | sudo tee -a /etc/systemd/system/springbootapp.service",
 
       "echo '[Service]' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      "echo 'Environment=DB_URL=${var.DB_URL}' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      "echo 'Environment=DB_USERNAME=${var.DB_USERNAME}' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      "echo 'Environment=DB_PASSWORD=${var.DB_PASSWORD}' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      // "echo 'Environment=DB_URL=${var.DB_URL}' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      // "echo 'Environment=DB_USERNAME=${var.DB_USERNAME}' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      // "echo 'Environment=DB_PASSWORD=${var.DB_PASSWORD}' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      # Log the environment variables to a file for validation
+      "echo 'EnvironmentFile=/etc/environment' | sudo tee -a /etc/systemd/system/springbootapp.service", # Load env variables from /etc/environment
+      "echo 'ExecStartPre=/bin/bash -c \"env > /var/log/springboot-env.log\"' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo '[Install]' | sudo tee -a /etc/systemd/system/springbootapp.service",
