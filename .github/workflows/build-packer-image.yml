@@ -85,10 +85,6 @@ jobs:
             -var "ssh_username=ubuntu" \
             -var "subnet_id=${{ secrets.SUBNET_ID }}" \
             -var "jar_file=ROOT.jar" \
-            -var "DB_USERNAME=${{ secrets.DB_USERNAME }}" \
-            -var "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
-            -var "DB_NAME=${{ secrets.DB_NAME }}" \
-            -var "DB_URL=${{ secrets.DB_URL }}" \
             ./webapp-main.pkr.hcl
       - name: Retrieve AMI ID
         id: get-ami-id
