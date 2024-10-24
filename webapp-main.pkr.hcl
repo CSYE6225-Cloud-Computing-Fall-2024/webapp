@@ -103,33 +103,17 @@ build {
       "echo 'Installing JDK-17'",
       "sudo apt-get install -y openjdk-17-jdk",
 
-      // "echo 'Installing PostgreSQL 16'",
-      // "sudo apt-get install -y postgresql-16",
-      // "echo 'Enabling and starting PostgreSQL'",
-      // "sudo systemctl enable postgresql",
-      // "sudo systemctl start postgresql",
-
-      // # Configure PostgreSQL
-      // "sudo -u postgres psql -c \"CREATE DATABASE ${var.DB_NAME};\"",
-      // // "sudo -u postgres psql -c \"CREATE USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
-      // "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} WITH PASSWORD '${var.DB_PASSWORD}';\"",
-      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${var.DB_NAME} TO ${var.DB_USERNAME};\"",
-      // "sudo -u postgres psql -c \"\\c ${var.DB_NAME}\"",
-      // "sudo -u postgres psql -c \"GRANT ALL PRIVILEGES ON SCHEMA public TO ${var.DB_USERNAME};\"",
-      // "sudo -u postgres psql -c \"ALTER SCHEMA public OWNER TO ${var.DB_USERNAME};\"",
-      // "sudo -u postgres psql -c \"GRANT CREATE ON SCHEMA public TO ${var.DB_USERNAME};\"",
-      // "sudo -u postgres psql -c \"ALTER USER ${var.DB_USERNAME} CREATEDB;\"",
-
       # Create user csye6225 and group
+      "echo 'csye6225 groud added'",
       "sudo groupadd csye6225",
+      "echo 'csye6225 groud got added'",
+      "echo 'csye6225 user added as nologin'",
       "sudo useradd -r -g csye6225 -s /usr/sbin/nologin csye6225",
 
       # Clean up unnecessary files to reduce image size
       "sudo apt-get clean"
     ]
   }
-
-  # Check if user exists, then update ownership
 
   # Copy Spring Boot JAR file
   provisioner "file" {
@@ -138,6 +122,7 @@ build {
   }
 
   # Set permissions on the JAR file
+  # Check if user exists, then update ownership
   provisioner "shell" {
     inline = [
       "if id -u csye6225 >/dev/null 2>&1; then",
@@ -151,13 +136,6 @@ build {
       "fi"
     ]
   }
-
-  // # Set permissions on the JAR file
-  // provisioner "shell" {
-  //   inline = [
-  //     "sudo chown csye6225:csye6225 /home/ubuntu/spring-boot-app.jar"
-  //   ]
-  // }
 
   # Check if git is installed
   provisioner "shell" {
@@ -178,9 +156,6 @@ build {
       "echo 'Description=Spring Boot Application' | sudo tee -a /etc/systemd/system/springbootapp.service",
 
       "echo '[Service]' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      // "echo 'Environment=DB_URL=${var.DB_URL}' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      // "echo 'Environment=DB_USERNAME=${var.DB_USERNAME}' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      // "echo 'Environment=DB_PASSWORD=${var.DB_PASSWORD}' | sudo tee -a /etc/systemd/system/springbootapp.service",
       # Log the environment variables to a file for validation
       "echo 'EnvironmentFile=/etc/environment' | sudo tee -a /etc/systemd/system/springbootapp.service", # Load env variables from /etc/environment
       "echo 'ExecStartPre=/bin/bash -c \"env > /var/log/springboot-env.log\"' | sudo tee -a /etc/systemd/system/springbootapp.service",
