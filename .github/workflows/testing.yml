@@ -53,6 +53,7 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
           BANNER: ${{secrets.BANNER}}
+          APPLICATION_NAME: ${{secrets.APPLICATION_NAME}}
           SHOW_SQL: ${{secrets.SHOW_SQL}}
           NON_CONTEXTUAL_CREATION: ${{secrets.NON_CONTEXTUAL_CREATION}}
           HIBERNATE_DIALECT_POSTGRESDIALECT: ${{secrets.HIBERNATE_DIALECT_POSTGRESDIALECT}}
