@@ -52,4 +52,9 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}        # Database name from GitHub Secrets
           DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
+          BANNER: ${{secrets.BANNER}}
+          SHOW_SQL: ${{secrets.SHOW_SQL}}
+          NON_CONTEXTUAL_CREATION: ${{secrets.NON_CONTEXTUAL_CREATION}}
+          HIBERNATE_DIALECT_POSTGRESDIALECT: ${{secrets.HIBERNATE_DIALECT_POSTGRESDIALECT}}
+          HIBERNATE_DDL_AUTO: ${{secrets.HIBERNATE_DDL_AUTO}}
         run: ./gradlew test
