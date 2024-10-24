@@ -47,6 +47,12 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}        # Database name from GitHub Secrets
           DB_USERNAME: ${{ secrets.DB_USERNAME }}    # Username from GitHub Secrets
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Password from GitHub Secrets
+          BANNER: ${{secrets.BANNER}}
+          APPLICATION_NAME: ${{secrets.APPLICATION_NAME}}
+          SHOW_SQL: ${{secrets.SHOW_SQL}}
+          NON_CONTEXTUAL_CREATION: ${{secrets.NON_CONTEXTUAL_CREATION}}
+          HIBERNATE_DIALECT_POSTGRESDIALECT: ${{secrets.HIBERNATE_DIALECT_POSTGRESDIALECT}}
+          HIBERNATE_DDL_AUTO: ${{secrets.HIBERNATE_DDL_AUTO}}
         run: ./gradlew test
 
       - name: Configure AWS credentials
@@ -85,10 +91,6 @@ jobs:
             -var "ssh_username=ubuntu" \
             -var "subnet_id=${{ secrets.SUBNET_ID }}" \
             -var "jar_file=ROOT.jar" \
-            -var "DB_USERNAME=${{ secrets.DB_USERNAME }}" \
-            -var "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
-            -var "DB_NAME=${{ secrets.DB_NAME }}" \
-            -var "DB_URL=${{ secrets.DB_URL }}" \
             ./webapp-main.pkr.hcl
       - name: Retrieve AMI ID
         id: get-ami-id
