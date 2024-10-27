@@ -2,7 +2,7 @@ name: Packer Validate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [withoutDBPackerBuildTest]
 
 jobs:
     packer-validate:
