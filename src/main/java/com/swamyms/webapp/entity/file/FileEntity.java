@@ -25,7 +25,7 @@ public class FileEntity {
 //    private String id;
 //
 //    private String name;
-    private Long size;
+//    private Long size;
 //    private String url;  // Optional: Can store URL or path if needed
 
     @Id
@@ -43,16 +43,16 @@ public class FileEntity {
     private String url;
 
     @ReadOnlyProperty
-    @Column(name = "upload_date", updatable = false)
+    @Column(name = "upload_date")
     private LocalDate uploadDate;
 
 //    @ReadOnlyProperty
-//    @Column(name = "user_id")
-//    @GeneratedValue(strategy = GenerationType.UUID)
+//    @Column(name = "user_id_test")
+////    @GeneratedValue(strategy = GenerationType.UUID)
 //    private String userId; // Assuming user_id is of type String
 
     @OneToOne // Establishing the one-to-one relationship with User
-    @JoinColumn(name = "id", referencedColumnName = "id", nullable = false) // Ensuring user_id is not null
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false) // Ensuring user_id is not null
     private User user; // Reference to the User entity
     public FileEntity() {
 
