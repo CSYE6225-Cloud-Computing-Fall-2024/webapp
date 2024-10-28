@@ -5,15 +5,22 @@ import com.swamyms.webapp.entity.file.model.FileUploadRequest;
 import com.swamyms.webapp.entity.file.model.FileUploadResponse;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class FileMapper {
 
-    public FileEntity toEntity(String id, FileUploadRequest fileUploadRequest, User user){
+    public FileEntity toEntity(String id, FileUploadRequest fileUploadRequest, User user, String filePath){
         return FileEntity.builder()
                 .id(id)
-                .fileName(fileUploadRequest.fileName())
-                .size(fileUploadRequest.file().getSize())
+                .fileName(fileUploadRequest.file().getOriginalFilename())
+//        ((StandardMultipartHttpServletRequest.StandardMultipartFile) fileUploadRequest.file()).filename
+
+//                .fileName(fileUploadRequest.fileName())
+//                .size(fileUploadRequest.file().getSize())
+                .url(filePath)
                 .user(user)
+                .uploadDate(LocalDate.now())  // Set the current date here
                 .build();
     }
 
@@ -21,8 +28,10 @@ public class FileMapper {
         return new FileUploadResponse(
                 fileEntity.getId(),
                 fileEntity.getFileName(),
-                "",
-                fileEntity.getSize()
+                fileEntity.getUrl(),
+//                fileEntity.getSize(),
+                fileEntity.getUploadDate(),
+                fileEntity.getUser().getId()
         );
     }
 }
