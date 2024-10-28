@@ -10,6 +10,7 @@ import com.swamyms.webapp.service.UserService;
 import com.swamyms.webapp.validations.UserValidations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -17,6 +18,7 @@ import java.text.DateFormat;
 import java.util.Base64;
 import java.util.HashMap;
 
+@Validated
 @RestController
 @RequestMapping("/v1")
 public class UserRestController {
@@ -242,7 +244,7 @@ public class UserRestController {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
-    @RequestMapping(value = "/**",method = RequestMethod.HEAD)
+    @RequestMapping(value = "/user/self",method = RequestMethod.HEAD)
     public ResponseEntity<String>  handleHeadUserStatus(){
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
