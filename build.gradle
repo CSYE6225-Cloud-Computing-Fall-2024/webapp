@@ -31,6 +31,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.security:spring-security-crypto:6.3.3'
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+	implementation 'software.amazon.awssdk:s3:2.20.37' // check for the latest version
+	implementation 'software.amazon.awssdk:auth:2.20.37'
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
