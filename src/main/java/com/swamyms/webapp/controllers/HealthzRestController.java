@@ -1,9 +1,6 @@
 package com.swamyms.webapp.controllers;
 
 
-import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
-import com.swamyms.webapp.exceptionhandling.exceptions.MethodNotAllowedException;
-import com.swamyms.webapp.exceptionhandling.model.ApiMessage;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
@@ -13,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.HashMap;
 
 @RestController

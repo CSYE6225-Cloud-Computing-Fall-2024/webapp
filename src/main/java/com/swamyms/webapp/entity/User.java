@@ -5,10 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor

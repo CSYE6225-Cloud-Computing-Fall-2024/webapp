@@ -9,8 +9,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @AllArgsConstructor
 @Getter
@@ -19,14 +17,6 @@ import java.util.Date;
 @Entity
 @Table(name = "files")
 public class FileEntity {
-
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.UUID)  // Uses UUID for ID generation
-//    private String id;
-//
-//    private String name;
-//    private Long size;
-//    private String url;  // Optional: Can store URL or path if needed
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
