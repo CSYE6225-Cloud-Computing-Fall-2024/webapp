@@ -45,13 +45,14 @@
 
                 s3Client.putObject(PutObjectRequest.builder()
                                 .bucket(bucketName)
-                                .key(user.getId())
+                                .key(fileName)
                                 .build(),
                         RequestBody.fromBytes(file.getBytes()));
 
                 // Encode the file name for URL use
                 String encodedFileName = URLEncoder.encode(rawFileName, StandardCharsets.UTF_8.toString());
-                String s3Url = "https://" + bucketName + ".s3.amazonaws.com/" + user.getId() + "/" + encodedFileName;
+//                String s3Url = "https://" + bucketName + ".s3.amazonaws.com/" + user.getId() + "/" + encodedFileName;
+                String s3Url = bucketName+ "/" + user.getId() + "/" + encodedFileName;
 
 
                 // Save file to local storage
@@ -79,6 +80,9 @@
         }
 
         public void deleteImageDetailsByUserID(String userID){
+
+            String fileName = fileRepository.findFileNameByUserId(userID);
+            String key = userID + "/" + fileName;
             // Check if the file exists
             if (!fileRepository.existsByUserId(userID)) {
                 throw new ResourceNotFoundException();
@@ -87,7 +91,7 @@
             // Delete the object from S3
             s3Client.deleteObject(DeleteObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(userID)
+                    .key(key)
                     .build());
             // If it exists, delete the user picture
             fileRepository.deleteByUserId(userID);
