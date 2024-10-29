@@ -14,9 +14,6 @@ public class FileMapper {
         return FileEntity.builder()
                 .id(id)
                 .fileName(fileUploadRequest.file().getOriginalFilename())
-//        ((StandardMultipartHttpServletRequest.StandardMultipartFile) fileUploadRequest.file()).filename
-
-//                .fileName(fileUploadRequest.fileName())
 //                .size(fileUploadRequest.file().getSize())
                 .url(filePath)
                 .user(user)
