@@ -103,6 +103,12 @@ build {
       "echo 'Installing JDK-17'",
       "sudo apt-get install -y openjdk-17-jdk",
 
+      # Installed and enabled AWS CloudWatch
+      "echo 'Installing AWS CloudWatch Agent'",
+      "sudo yum install -y amazon-cloudwatch-agent",
+      "echo 'Enabled AWS CloudWatch Agent'",
+      "sudo systemctl enable amazon-cloudwatch-agent",
+
       # Create user csye6225 and group
       "echo 'csye6225 groud added'",
       "sudo groupadd csye6225",
