@@ -105,9 +105,10 @@ build {
 
       # Installed and enabled AWS CloudWatch
       "echo 'Installing AWS CloudWatch Agent'",
-      "sudo yum install -y amazon-cloudwatch-agent",
+      "sudo apt-get install -y amazon-cloudwatch-agent", # Install CloudWatch Agent
       "echo 'Enabled AWS CloudWatch Agent'",
-      "sudo systemctl enable amazon-cloudwatch-agent",
+      "sudo systemctl enable amazon-cloudwatch-agent", # Enable the CloudWatch Agent service
+      "sudo systemctl start amazon-cloudwatch-agent",
 
       # Create user csye6225 and group
       "echo 'csye6225 groud added'",
