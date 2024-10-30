@@ -121,11 +121,53 @@ build {
     ]
   }
 
-  # Copy CloudWatch Agent configuration file
   provisioner "file" {
-    source      = "cloudwatch-config.json"
+    content = jsonencode({
+      agent = {
+        metrics_collection_interval = 60
+        run_as_user                 = "root"
+      }
+      metrics = {
+        metrics_collected = {
+          cpu = {
+            resources = ["*"]
+            measurement = [
+              "usage_active",
+              "usage_idle"
+            ]
+            totalcpu = false
+          }
+          disk = {
+            resources   = ["/"]
+            measurement = ["used_percent"]
+          }
+          mem = {
+            measurement = ["used_percent"]
+          }
+        }
+      }
+      logs = {
+        logs_collected = {
+          files = {
+            collect_list = [
+              {
+                file_path       = "/var/log/syslog"
+                log_group_name  = "/var/log/syslog"
+                log_stream_name = "{instance_id}"
+              },
+              {
+                file_path       = "/var/log/springbootapp.log"
+                log_group_name  = "/var/log/springbootapp"
+                log_stream_name = "{instance_id}"
+              }
+            ]
+          }
+        }
+      }
+    })
     destination = "/tmp/cloudwatch-config.json"
   }
+
 
   # Configure and start CloudWatch Agent
   provisioner "shell" {
