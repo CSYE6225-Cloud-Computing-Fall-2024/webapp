@@ -1,6 +1,9 @@
 package com.swamyms.webapp.controllers;
 
 
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
@@ -19,11 +22,14 @@ public class HealthzRestController {
 
     @Autowired
     private final EntityManager entityManager;
+    private final MeterRegistry meterRegistry;
 
-    public HealthzRestController(EntityManager entityManager) {
+    public HealthzRestController(EntityManager entityManager, MeterRegistry meterRegistry) {
         this.entityManager = entityManager;
+        this.meterRegistry = meterRegistry;
     }
 
+    @Timed(value = "api.healthz.get", description = "Time taken to check healthz status")
     @GetMapping
     private ResponseEntity<?> getHealthzStatus(@RequestParam(required = false) HashMap<String, String> params, // Check for query parameters
                                                     @RequestBody(required = false) String requestBody // Check for request body
@@ -33,6 +39,9 @@ public class HealthzRestController {
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
 
+        // Track the API call count
+        meterRegistry.counter("api.healthz.get.call.count").increment();
+
         // Check if there are any query parameters or a request body
         if ((params != null && !params.isEmpty()) || (requestBody != null && !requestBody.isEmpty())) {
             // Return 400 Bad Request if any query parameters or request body is present
@@ -40,9 +49,11 @@ public class HealthzRestController {
 //                    .body(errorResponse);
         }
         try {
+            Timer.Sample sample = Timer.start(meterRegistry); // Start timer for DB query
             // Execute a simple query to check the health of the database
             Query query = entityManager.createNativeQuery("SELECT 1");
             query.getSingleResult();
+            sample.stop(meterRegistry.timer("db.healthz.query.time")); // Stop timer for DB query
 
             // Return 200 OK with cache control headers
 //            ApiMessage successResponse = new ApiMessage(
