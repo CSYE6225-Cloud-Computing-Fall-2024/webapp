@@ -121,57 +121,59 @@ build {
     ]
   }
 
-  provisioner "file" {
-    content = jsonencode({
-      agent = {
-        metrics_collection_interval = 60
-        run_as_user                 = "root"
+  {
+    "provisioners": [
+      {
+        "type": "shell",
+        "inline": [
+          "cat <<EOT | sudo tee /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json > /dev/null",
+          "{",
+          "  \"agent\": {",
+          "    \"run_as_user\": \"root\"",
+          "  },",
+          "  \"logs\": {",
+          "    \"logs_collected\": {",
+          "      \"files\": {",
+          "        \"collect_list\": [",
+          "          {",
+          "            \"file_path\": \"/var/log/syslog\",",
+          "            \"log_group_name\": \"System-logs\",",
+          "            \"log_stream_name\": \"{instance_id}-syslog\"",
+          "          },",
+          "          {",
+          "            \"file_path\": \"/var/log/springboot-app.log\",",
+          "            \"log_group_name\": \"SpringBoot-webapp-logs\",",
+          "            \"log_stream_name\": \"{instance_id}-Springboot\"",
+          "          }",
+          "        ]",
+          "      }",
+          "    }",
+          "  },",
+          "  \"metrics\": {",
+          "    \"namespace\": \"CustomMetrics\",",
+          "    \"metrics_collected\": {",
+          "      \"disk\": {",
+          "        \"measurement\": [\"used_percent\"],",
+          "        \"metrics_collection_interval\": 60",
+          "      },",
+          "      \"mem\": {",
+          "        \"measurement\": [\"mem_used_percent\"],",
+          "        \"metrics_collection_interval\": 60",
+          "      },",
+          "      \"statsd\": {",
+          "        \"service_address\": \":8125\",",
+          "        \"metrics_collection_interval\": 60,",
+          "        \"metrics_aggregation_interval\": 60",
+          "      }",
+          "    }",
+          "  }",
+          "}",
+          "EOT"
+        ]
       }
-      metrics = {
-        metrics_collected = {
-          cpu = {
-            resources = ["*"]
-            measurement = [
-              "usage_active",
-              "usage_idle"
-            ]
-            totalcpu = false
-          }
-          disk = {
-            resources   = ["/"]
-            measurement = ["used_percent"]
-          }
-          mem = {
-            measurement = ["used_percent"]
-          }
-          "statsd" : {
-            "service_address" : ":8125", // default StatsD port; update if using a custom port
-            "metrics_collection_interval" : 60,
-            "metrics_aggregation_interval" : 300
-          }
-        }
-      }
-      logs = {
-        logs_collected = {
-          files = {
-            collect_list = [
-              {
-                file_path       = "/var/log/syslog"
-                log_group_name  = "/var/log/syslog"
-                log_stream_name = "{instance_id}"
-              },
-              {
-                file_path       = "/var/log/springbootapp.log"
-                log_group_name  = "/var/log/springbootapp"
-                log_stream_name = "{instance_id}"
-              }
-            ]
-          }
-        }
-      }
-    })
-    destination = "/tmp/cloudwatch-config.json"
+    ]
   }
+
 
 
   # Configure and start CloudWatch Agent
