@@ -103,11 +103,25 @@ build {
       "echo 'Installing JDK-17'",
       "sudo apt-get install -y openjdk-17-jdk",
 
-      # Installed and enabled AWS CloudWatch
-      "echo 'Installing AWS CloudWatch Agent'",
-      "sudo apt-get install -y amazon-cloudwatch-agent", # Install CloudWatch Agent
-      "echo 'Enabled AWS CloudWatch Agent'",
-      "sudo systemctl enable amazon-cloudwatch-agent", # Enable the CloudWatch Agent service
+      # Install necessary packages
+      "echo 'Installing prerequisites...'",
+      "sudo apt-get install -y wget gnupg",
+
+      # Add the AWS CloudWatch Agent APT repository
+      "echo 'Adding AWS CloudWatch Agent repository...'",
+      "wget -qO - https://amazon-cloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.gpg | sudo apt-key add -",
+      "echo 'deb https://amazon-cloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/ $(lsb_release -cs) main' | sudo tee /etc/apt/sources.list.d/amazon-cloudwatch-agent.list",
+
+      # Update the package lists again after adding the new repository
+      "sudo apt-get update",
+
+      # Install the CloudWatch Agent
+      "echo 'Installing AWS CloudWatch Agent...'",
+      "sudo apt-get install -y amazon-cloudwatch-agent",
+
+      # Enable and start the CloudWatch Agent service
+      "echo 'Enabling and starting AWS CloudWatch Agent...'",
+      "sudo systemctl enable amazon-cloudwatch-agent",
       "sudo systemctl start amazon-cloudwatch-agent",
 
       # Create user csye6225 and group
