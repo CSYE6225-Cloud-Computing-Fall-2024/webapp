@@ -103,26 +103,11 @@ build {
       "echo 'Installing JDK-17'",
       "sudo apt-get install -y openjdk-17-jdk",
 
-      # Install necessary packages
-      "echo 'Installing prerequisites...'",
-      "sudo apt-get install -y wget gnupg",
-
-      # Add the AWS CloudWatch Agent APT repository
-      "echo 'Adding AWS CloudWatch Agent repository...'",
-      "wget -qO - https://amazon-cloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.gpg | sudo apt-key add -",
-      "echo 'deb https://amazon-cloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/ $(lsb_release -cs) main' | sudo tee /etc/apt/sources.list.d/amazon-cloudwatch-agent.list",
-
-      # Update the package lists again after adding the new repository
       "sudo apt-get update",
-
-      # Install the CloudWatch Agent
-      "echo 'Installing AWS CloudWatch Agent...'",
-      "sudo apt-get install -y amazon-cloudwatch-agent",
-
-      # Enable and start the CloudWatch Agent service
-      "echo 'Enabling and starting AWS CloudWatch Agent...'",
-      "sudo systemctl enable amazon-cloudwatch-agent",
-      "sudo systemctl start amazon-cloudwatch-agent",
+      "sudo apt-get install -y wget",
+      "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
+      "sudo rm ./amazon-cloudwatch-agent.deb",
 
       # Create user csye6225 and group
       "echo 'csye6225 groud added'",
@@ -136,41 +121,17 @@ build {
     ]
   }
 
-  # Configure CloudWatch Agent with logs and metrics configuration
+  # Copy CloudWatch Agent configuration file
+  provisioner "file" {
+    source      = "cloudwatch-config.json"
+    destination = "/tmp/cloudwatch-config.json"
+  }
+
+  # Configure and start CloudWatch Agent
   provisioner "shell" {
     inline = [
-      "echo 'Setting up CloudWatch Agent configuration with logs'",
-      "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc",
-      "cat <<EOF | sudo tee /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
-      "{",
-      "  \"logs\": {",
-      "    \"logs_collected\": {",
-      "      \"files\": {",
-      "        \"collect_list\": [",
-      "          {",
-      "            \"file_path\": \"/var/log/syslog\",",      # Example for system logs
-      "            \"log_group_name\": \"my-syslog-group\",", # Replace with your log group name
-      "            \"log_stream_name\": \"{instance_id}/syslog\",",
-      "            \"timestamp_format\": \"%b %d %H:%M:%S\"",
-      "          },",
-      "          {",
-      "            \"file_path\": \"/home/ubuntu/spring-boot-app.log\",", # Application log file
-      "            \"log_group_name\": \"my-app-log-group\",",            # Replace with your log group name
-      "            \"log_stream_name\": \"{instance_id}/app-log\",",
-      "            \"timestamp_format\": \"%Y-%m-%d %H:%M:%S\"",
-      "          }",
-      "        ]",
-      "      }",
-      "    }",
-      "  },",
-      "  \"metrics\": {",
-      "    \"append_dimensions\": {",
-      "      \"InstanceId\": \"$${aws:InstanceId}\"",
-      "    }",
-      "  }",
-      "}",
-      "EOF",
-      "sudo systemctl start amazon-cloudwatch-agent"
+      "sudo mv /tmp/cloudwatch-config.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s"
     ]
   }
 
@@ -218,8 +179,7 @@ build {
       # Log the environment variables to a file for validation
       "echo 'EnvironmentFile=/etc/environment' | sudo tee -a /etc/systemd/system/springbootapp.service", # Load env variables from /etc/environment
       "echo 'ExecStartPre=/bin/bash -c \"env > /var/log/springboot-env.log\"' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      # "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar > /home/ubuntu/spring-boot-app.log 2>&1' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo '[Install]' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/springbootapp.service",
