@@ -144,6 +144,11 @@ build {
           mem = {
             measurement = ["used_percent"]
           }
+          "statsd": {
+                  "service_address": ":8125", // default StatsD port; update if using a custom port
+                  "metrics_collection_interval":60,
+                  "metrics_aggregation_interval":300
+          }
         }
       }
       logs = {
