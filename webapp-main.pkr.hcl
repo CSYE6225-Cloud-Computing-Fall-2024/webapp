@@ -121,6 +121,44 @@ build {
     ]
   }
 
+  # Configure CloudWatch Agent with logs and metrics configuration
+  provisioner "shell" {
+    inline = [
+      "echo 'Setting up CloudWatch Agent configuration with logs'",
+      "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc",
+      "cat <<EOF | sudo tee /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "{",
+      "  \"logs\": {",
+      "    \"logs_collected\": {",
+      "      \"files\": {",
+      "        \"collect_list\": [",
+      "          {",
+      "            \"file_path\": \"/var/log/syslog\",",      # Example for system logs
+      "            \"log_group_name\": \"my-syslog-group\",", # Replace with your log group name
+      "            \"log_stream_name\": \"{instance_id}/syslog\",",
+      "            \"timestamp_format\": \"%b %d %H:%M:%S\"",
+      "          },",
+      "          {",
+      "            \"file_path\": \"/home/ubuntu/spring-boot-app.log\",", # Application log file
+      "            \"log_group_name\": \"my-app-log-group\",",            # Replace with your log group name
+      "            \"log_stream_name\": \"{instance_id}/app-log\",",
+      "            \"timestamp_format\": \"%Y-%m-%d %H:%M:%S\"",
+      "          }",
+      "        ]",
+      "      }",
+      "    }",
+      "  },",
+      "  \"metrics\": {",
+      "    \"append_dimensions\": {",
+      "      \"InstanceId\": \"${aws:InstanceId}\"",
+      "    }",
+      "  }",
+      "}",
+      "EOF",
+      "sudo systemctl start amazon-cloudwatch-agent"
+    ]
+  }
+
   # Copy Spring Boot JAR file
   provisioner "file" {
     source      = var.jar_file
@@ -165,7 +203,8 @@ build {
       # Log the environment variables to a file for validation
       "echo 'EnvironmentFile=/etc/environment' | sudo tee -a /etc/systemd/system/springbootapp.service", # Load env variables from /etc/environment
       "echo 'ExecStartPre=/bin/bash -c \"env > /var/log/springboot-env.log\"' | sudo tee -a /etc/systemd/system/springbootapp.service",
-      "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      # "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar' | sudo tee -a /etc/systemd/system/springbootapp.service",
+      "echo 'ExecStart=/usr/bin/java -jar /home/ubuntu/spring-boot-app.jar > /home/ubuntu/spring-boot-app.log 2>&1' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo '[Install]' | sudo tee -a /etc/systemd/system/springbootapp.service",
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/springbootapp.service",
