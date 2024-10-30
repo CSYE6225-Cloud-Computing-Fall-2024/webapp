@@ -150,7 +150,7 @@ build {
       "  },",
       "  \"metrics\": {",
       "    \"append_dimensions\": {",
-      "      \"InstanceId\": \"${aws:InstanceId}\"",
+      "      \"InstanceId\": \"$${aws:InstanceId}\"",
       "    }",
       "  }",
       "}",
