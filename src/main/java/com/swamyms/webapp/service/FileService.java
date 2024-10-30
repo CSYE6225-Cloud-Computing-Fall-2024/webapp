@@ -51,8 +51,8 @@
 
                 // Encode the file name for URL use
                 String encodedFileName = URLEncoder.encode(rawFileName, StandardCharsets.UTF_8.toString());
-//                String s3Url = "https://" + bucketName + ".s3.amazonaws.com/" + user.getId() + "/" + encodedFileName;
-                String s3Url = bucketName+ "/" + user.getId() + "/" + encodedFileName;
+                String s3Url = "https://" + bucketName + ".s3.amazonaws.com/" + user.getId() + "/" + encodedFileName;
+//                String s3Url = bucketName+ "/" + user.getId() + "/" + encodedFileName;
 
 
                 // Save file to local storage
