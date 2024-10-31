@@ -8,6 +8,11 @@ import com.swamyms.webapp.entity.AddUser;
 import com.swamyms.webapp.entity.User;
 import com.swamyms.webapp.service.UserService;
 import com.swamyms.webapp.validations.UserValidations;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import jakarta.persistence.EntityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
@@ -23,24 +28,35 @@ import java.util.HashMap;
 @RequestMapping("/v1")
 public class UserRestController {
 
+    private static final Logger logger = LoggerFactory.getLogger(HealthzRestController.class);
     private UserService userService;
     @Autowired
     private UserValidations userValidations;
+    private MeterRegistry meterRegistry;
 
-    //    private UserDAO userDAO;
-    //quick and dirty method inject userDAO(Use Constructor Injection)
-    public UserRestController(UserService theUserService, UserValidations theUserValidations) {
+    @Autowired
+    public UserRestController(UserService theUserService, UserValidations theUserValidations, MeterRegistry meterRegistry) {
         userService = theUserService;
         userValidations = theUserValidations;
+        this.meterRegistry = meterRegistry;
+
+        // Register your metrics here
+        this.apiCallTimer = Timer.builder("api.user.calls")
+                .description("Time taken for user check API calls")
+                .register(meterRegistry);
     }
+    private final Timer apiCallTimer;
+
 
 
     @GetMapping("/user/self")
     public ResponseEntity<?> getUser(@RequestParam(required = false) HashMap<String, String> params, @RequestHeader(required = false) HttpHeaders headers, @RequestBody(required = false) String requestBody) {
+        long startTime = System.currentTimeMillis(); // Start timing API call
+        Timer.Sample sample = Timer.start(meterRegistry); // Start Timer for the API call
         //if params are present or body is not present return bad request
         if ((params != null && !params.isEmpty()) || (requestBody != null && !requestBody.isEmpty())) {
+            logger.error("Bad request: unexpected parameters or body present");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).body("GetMapping User error: Params are present or body is not null");
         }
 
         //get user credentials from header and check authentication
@@ -48,14 +64,14 @@ public class UserRestController {
 
         //if user provides only username or password, or does not provides any credential, return bad request
         if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
+            logger.error("Bad request: Enter both username and password for Basic Auth"); // Log warning
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).body("GetMapping User error: Enter both username and password for Basic Auth");
         }
 
         boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
         if (!checkUserPassword) {
+            logger.error("Unauthorized request: Username or Password Wrong "); // Log warning
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).build();
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).body("GetMapping User error: Unauthorized Access");
         }
 
         //retrieve user from db
@@ -65,8 +81,12 @@ public class UserRestController {
         try {
             ObjectMapper mapper = configureMapper();
             String jsonString = mapper.writeValueAsString(user);
+//            logger.info("User fetched successfully"); // Log warning
+            logger.info("User fetched successfully. Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
+            sample.stop(apiCallTimer);
             return ResponseEntity.status(HttpStatus.OK).cacheControl(CacheControl.noCache()).contentType(MediaType.APPLICATION_JSON).body(jsonString);
         } catch (JsonProcessingException e) {
+            logger.error("Bad request: Json Processing error connection : {}", e.getMessage()); // Log error
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
     }
@@ -80,14 +100,18 @@ public class UserRestController {
     @PostMapping("/user")
     public ResponseEntity<Object> createUser(@RequestParam(required = false) HashMap<String, String> param, @RequestHeader(required = false) HttpHeaders headers, @RequestBody(required = false) String userBody) {
 
+        long startTime = System.currentTimeMillis(); // Start timing API call
+        Timer.Sample sample = Timer.start(meterRegistry); // Start Timer for the API call
         //if params are present or body is not present return bad request
         if (param.size() > 0 || userBody == null) {
+            logger.error("Bad request: unexpected parameters or body present");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
 
         //get user credentials from header, if present return bad request
         String[] userCreds = getCreds(headers);
         if (userCreds.length > 0) {
+            logger.error("Bad request: Credentials should not be present for user while posting");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
 
@@ -100,28 +124,31 @@ public class UserRestController {
             if (queryUser != null) {
                 //check if any required property or value is missing in request body
                 if (queryUser.getEmail() == null || queryUser.getPassword() == null || queryUser.getFirst_name() == null || queryUser.getLast_name() == null || queryUser.getEmail().trim().isEmpty() || queryUser.getPassword().trim().isEmpty() || queryUser.getFirst_name().trim().isEmpty() || queryUser.getLast_name().trim().isEmpty()) {
+                    logger.error("Bad request: Email or Password or First Name or Last Name not present");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
                 }
 
                 //if user provides Id, AccountCreated or Account Updated Date in request body, return bad request
                 if (queryUser.getId() != null || queryUser.getAccountCreated()!=null || queryUser.getAccountUpdated()!=null) {
+                    logger.error("Bad request: Account created or Account Update values present");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
                 }
 
                 //check for User email validation
                 if (!userValidations.validateEmail(queryUser.getEmail())) {
+                    logger.error("Bad request: User Email issue");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
                 }
 
                 //check for User Password validation
                 if (!userValidations.isValidPassword(queryUser.getPassword())) {
+                    logger.error("Bad request: Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                             .body("Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.");
                 }
 
                 //retrieve user from db based on username
                 User searchedUser = userService.getUserByEmail(queryUser.getEmail());
-
                 //if user is present, return bad request else create user
                 if (searchedUser == null) {
                     User newUser = new User();
@@ -129,15 +156,18 @@ public class UserRestController {
                     translateAddUserToUser(queryUser, newUser);
                     User savedUser = userService.save(newUser);
                     String jsonString = mapper.writeValueAsString(savedUser);
+                    sample.stop(apiCallTimer);
+                    logger.info("User Created Successfully. Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
                     return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noCache()).contentType(MediaType.APPLICATION_JSON).body(jsonString);
                 } else {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).body("User Email Already Exists: " + queryUser.getEmail());
+                    logger.error("Bad request : User Email Already Exist");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
                 }
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
             }
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Bad Request: Json Processing connection error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
     }
@@ -151,8 +181,11 @@ public class UserRestController {
     @PutMapping("/user/self")
     public ResponseEntity<Object> updateUser(@RequestParam(required = false) HashMap<String, String> params, @RequestHeader(required = false) HttpHeaders headers, @RequestBody(required = false) String requestBody) {
 
+        long startTime = System.currentTimeMillis(); // Start timing API call
+        Timer.Sample sample = Timer.start(meterRegistry); // Start Timer for the API call
         //if params are present or body is not present return bad request
         if (!params.isEmpty() || requestBody == null) {
+            logger.error("Bad request: unexpected parameters or body present");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
 
@@ -162,11 +195,13 @@ public class UserRestController {
 
             //if user provides only username or password, or does not provides any credential, return bad request
             if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
+                logger.error("Bad request: Credentials should not be present for user");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
             }
 
             boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
             if (!checkUserPassword) {
+                logger.error("Bad request: User Unauthorized");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).body("Unauthorized Access");
             }
 
@@ -182,6 +217,7 @@ public class UserRestController {
 //                        warnLogger.warn("User Put Warning: First Name is not present in body");
                         if (queryUser.getLast_name() == null || queryUser.getLast_name().trim().isEmpty()) {
 //                            logger.error("User Put error: First Name, Last Name, Password fields are not present");
+                            logger.error("Bad request: the request body should contain atleast one of the parameters (first_name, last_name, password) and their values should be blank");
                             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
 //                            return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).body("PutMapping User Error: the request body should contain atleast one of the parameters (first_name, last_name, password) and their values should be blank");
                         }
@@ -190,11 +226,13 @@ public class UserRestController {
 
                 //if user submits username, id, account created, account updated return bad request
                 if (queryUser.getId() != null || queryUser.getEmail() != null || queryUser.getAccountCreated()!= null || queryUser.getAccountUpdated()!= null) {
+                    logger.error("Bad request: ID or Email or Account Created or Account Updated details are present in body");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
                 }
 
                 //check for User Password validation
                 if (queryUser.getPassword()!= null && !userValidations.isValidPassword(queryUser.getPassword())) {
+                    logger.error("Bad request: Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                             .body("Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.");
                 }
@@ -211,12 +249,16 @@ public class UserRestController {
                 User updatedUser = userService.save(user);
 
                 if (updatedUser != null) {
+                    sample.stop(apiCallTimer);
+                    logger.info("User updated Successfully. Time taken: {} ms", System.currentTimeMillis() - startTime);
                     return ResponseEntity.status(HttpStatus.NO_CONTENT).cacheControl(CacheControl.noCache()).build();
                 }
             } else {
+                logger.error("Bad request: User details cannot be null");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
             }
         } catch (JsonProcessingException e) {
+            logger.error("Bad Request: Json Processing connection error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
@@ -234,6 +276,7 @@ public class UserRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Delete /user/self called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
     @PatchMapping("/**")
@@ -241,6 +284,7 @@ public class UserRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Patch /user/self called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
@@ -249,6 +293,7 @@ public class UserRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Head /user/self called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
     @RequestMapping(value = "/**",method = RequestMethod.OPTIONS)
@@ -256,6 +301,7 @@ public class UserRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Options /user/self called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
