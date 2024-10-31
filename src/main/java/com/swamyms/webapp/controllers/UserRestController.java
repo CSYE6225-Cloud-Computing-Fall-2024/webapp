@@ -269,6 +269,7 @@ public class UserRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Post /user/self called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(headers).build();
     }
     @DeleteMapping("/**")
