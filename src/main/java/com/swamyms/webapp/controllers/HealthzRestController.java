@@ -1,7 +1,9 @@
 package com.swamyms.webapp.controllers;
 
 
-import io.micrometer.core.annotation.Timed;
+import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
+import com.swamyms.webapp.exceptionhandling.exceptions.MethodNotAllowedException;
+import com.swamyms.webapp.exceptionhandling.model.ApiMessage;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
@@ -13,34 +15,45 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/healthz")
 
 public class HealthzRestController {
 
-    @Autowired
     private final EntityManager entityManager;
     private final MeterRegistry meterRegistry;
 
+    // Constructor for dependency injection
+    @Autowired
     public HealthzRestController(EntityManager entityManager, MeterRegistry meterRegistry) {
         this.entityManager = entityManager;
         this.meterRegistry = meterRegistry;
+
+        // Register your metrics here
+        this.apiCallTimer = Timer.builder("api.healthz.calls")
+                .description("Time taken for health check API calls")
+                .register(meterRegistry);
+
+        this.dbQueryTimer = Timer.builder("db.queries.execution")
+                .description("Time taken for database queries")
+                .register(meterRegistry);
     }
 
-    @Timed(value = "api.healthz.get", description = "Time taken to check healthz status")
+    private final Timer apiCallTimer;
+    private final Timer dbQueryTimer;
+
     @GetMapping
     private ResponseEntity<?> getHealthzStatus(@RequestParam(required = false) HashMap<String, String> params, // Check for query parameters
-                                                    @RequestBody(required = false) String requestBody // Check for request body
+                                               @RequestBody(required = false) String requestBody // Check for request body
     ) {
         // Prepare headers
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
-
-        // Track the API call count
-        meterRegistry.counter("api.healthz.get.call.count").increment();
 
         // Check if there are any query parameters or a request body
         if ((params != null && !params.isEmpty()) || (requestBody != null && !requestBody.isEmpty())) {
@@ -48,12 +61,22 @@ public class HealthzRestController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers).build();
 //                    .body(errorResponse);
         }
+        long startTime = System.currentTimeMillis(); // Start timing API call
         try {
-            Timer.Sample sample = Timer.start(meterRegistry); // Start timer for DB query
+            Timer.Sample sample = Timer.start(meterRegistry); // Start Timer for the API call
+
             // Execute a simple query to check the health of the database
+            long dbStartTime = System.currentTimeMillis(); // Start timing DB query
             Query query = entityManager.createNativeQuery("SELECT 1");
             query.getSingleResult();
-            sample.stop(meterRegistry.timer("db.healthz.query.time")); // Stop timer for DB query
+
+            long dbEndTime = System.currentTimeMillis(); // End timing DB query
+
+            // Record the time taken for the database query
+            dbQueryTimer.record(dbEndTime - dbStartTime, TimeUnit.MILLISECONDS);
+
+            // Record the API call duration
+            sample.stop(apiCallTimer);
 
             // Return 200 OK with cache control headers
 //            ApiMessage successResponse = new ApiMessage(
