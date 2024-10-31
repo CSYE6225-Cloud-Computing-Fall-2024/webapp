@@ -103,6 +103,12 @@ build {
       "echo 'Installing JDK-17'",
       "sudo apt-get install -y openjdk-17-jdk",
 
+      "sudo apt-get update",
+      "sudo apt-get install -y wget",
+      "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
+      "sudo rm ./amazon-cloudwatch-agent.deb",
+
       # Create user csye6225 and group
       "echo 'csye6225 groud added'",
       "sudo groupadd csye6225",
@@ -112,6 +118,56 @@ build {
 
       # Clean up unnecessary files to reduce image size
       "sudo apt-get clean"
+    ]
+  }
+
+  # Configure CloudWatch Agent with JSON settings
+  provisioner "shell" {
+    inline = [
+      "cat <<EOT | sudo tee /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json > /dev/null",
+      "{",
+      "  \"agent\": {",
+      "    \"run_as_user\": \"root\"",
+      "  },",
+      "  \"logs\": {",
+      "    \"logs_collected\": {",
+      "      \"files\": {",
+      "        \"collect_list\": [",
+      "          {",
+      "            \"file_path\": \"/var/log/syslog\",",
+      "            \"log_group_name\": \"csye6225-webapp-logs\",",
+      "            \"log_stream_name\": \"{instance_id}-syslog\"",
+      "          },",
+      "          {",
+      "            \"file_path\": \"/var/log/springboot-app.log\",",
+      "            \"log_group_name\": \"csye6225-webapp-logs\",",
+      "            \"log_stream_name\": \"{instance_id}-application\"",
+      "          }",
+      "        ]",
+      "      }",
+      "    }",
+      "  },",
+      "  \"metrics\": {",
+      "    \"namespace\": \"CustomMetrics\",",
+      "    \"metrics_collected\": {",
+      "      \"disk\": {",
+      "        \"measurement\": [\"used_percent\"],",
+      "        \"metrics_collection_interval\": 60",
+      "      },",
+      "      \"mem\": {",
+      "        \"measurement\": [\"mem_used_percent\"],",
+      "        \"metrics_collection_interval\": 60",
+      "      },",
+      "      \"statsd\": {",
+      "        \"service_address\": \":8125\",",
+      "        \"metrics_collection_interval\": 60,",
+      "        \"metrics_aggregation_interval\": 60",
+      "      }",
+      "    }",
+      "  }",
+      "}",
+      "EOT",
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s"
     ]
   }
 

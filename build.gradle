@@ -31,6 +31,21 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.security:spring-security-crypto:6.3.3'
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+	implementation 'software.amazon.awssdk:s3:2.20.37' // check for the latest version
+	implementation 'software.amazon.awssdk:auth:2.20.37'
+
+
+	implementation 'io.micrometer:micrometer-registry-cloudwatch2'
+	implementation 'software.amazon.awssdk:cloudwatch:2.17.146'
+
+	//implementation 'io.micrometer:micrometer-registry-statsd'
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.429' // Use the latest version
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE' // Ensure compatibility with your Spring Boot version
+	implementation 'io.micrometer:micrometer-core'
+	implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.10.0' // Use the latest version
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
