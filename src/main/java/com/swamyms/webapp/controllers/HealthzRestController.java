@@ -1,21 +1,19 @@
 package com.swamyms.webapp.controllers;
 
 
-import com.swamyms.webapp.exceptionhandling.exceptions.DataBaseConnectionException;
-import com.swamyms.webapp.exceptionhandling.exceptions.MethodNotAllowedException;
-import com.swamyms.webapp.exceptionhandling.model.ApiMessage;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +21,9 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/healthz")
 
 public class HealthzRestController {
+
+    private static final Logger logger = LoggerFactory.getLogger(HealthzRestController.class);
+
 
     private final EntityManager entityManager;
     private final MeterRegistry meterRegistry;
@@ -57,9 +58,8 @@ public class HealthzRestController {
 
         // Check if there are any query parameters or a request body
         if ((params != null && !params.isEmpty()) || (requestBody != null && !requestBody.isEmpty())) {
-            // Return 400 Bad Request if any query parameters or request body is present
+            logger.warn("Bad request: unexpected parameters or body present"); // Log warning
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers).build();
-//                    .body(errorResponse);
         }
         long startTime = System.currentTimeMillis(); // Start timing API call
         try {
@@ -78,18 +78,13 @@ public class HealthzRestController {
             // Record the API call duration
             sample.stop(apiCallTimer);
 
-            // Return 200 OK with cache control headers
-//            ApiMessage successResponse = new ApiMessage(
-//                    HttpStatus.OK.value(),
-//                    new Date(),
-//                    "Good Request",
-//                    "Successfully Get Request Executed for Healthz Endpoint"
-//            );
+            logger.info("Health check successful. Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
 
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .headers(headers).build();
         }catch (PersistenceException pe){
+            logger.error("Database connection error: {}", pe.getMessage()); // Log error
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).headers(headers).build();
         }
     }
@@ -98,6 +93,8 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        // Log the method call
+        logger.error("POST /healthz called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
@@ -106,6 +103,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Delete /healthz called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
 
     }
@@ -114,6 +112,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Put /healthz called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
@@ -122,6 +121,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("Patch /healthz called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
@@ -130,6 +130,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("HEAD /healthz called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
     @RequestMapping(method = RequestMethod.OPTIONS)
@@ -137,6 +138,7 @@ public class HealthzRestController {
         HttpHeaders headers = new HttpHeaders();
         headers.setCacheControl("no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
+        logger.error("OPTIONS /healthz called, returning METHOD_NOT_ALLOWED.");
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).headers(headers).build();
     }
 
