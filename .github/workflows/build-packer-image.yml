@@ -3,7 +3,7 @@ name: Build Packer Image
 on:
   push:
     branches:
-      - main
+      - test/WebAppWithALB
 
 jobs:
   build:
