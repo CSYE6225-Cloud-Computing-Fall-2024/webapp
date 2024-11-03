@@ -28,7 +28,7 @@ import java.util.HashMap;
 @RequestMapping("/v1")
 public class UserRestController {
 
-    private static final Logger logger = LoggerFactory.getLogger(HealthzRestController.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserRestController.class);
     private UserService userService;
     @Autowired
     private UserValidations userValidations;

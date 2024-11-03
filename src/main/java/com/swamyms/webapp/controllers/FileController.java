@@ -24,7 +24,7 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("v1/user/self/pic")
 public class FileController {
-    private static final Logger logger = LoggerFactory.getLogger(HealthzRestController.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     private FileService fileService;
     private UserService userService;
