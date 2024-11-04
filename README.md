@@ -1,6 +1,6 @@
 # WebApp Application
 
-This repository contains the source code for the project 'webapp', a cloud-based backend web application developed for the course CSYE 6225: Network Structures and Cloud Computing, offered by Northeastern University and taken in Fall 2024..
+This repository contains the source code for the project 'webapp', a cloud-based backend web application developed for the course CSYE 6225: Network Structures and Cloud Computing, offered by Northeastern University and taken in Fall 2024.
 
 ## Languages and Technologies Used
 
