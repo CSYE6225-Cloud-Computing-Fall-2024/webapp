@@ -24,7 +24,7 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("v1/user/self/pic")
 public class FileController {
-    private static final Logger logger = LoggerFactory.getLogger(HealthzRestController.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     private FileService fileService;
     private UserService userService;
@@ -110,7 +110,7 @@ public class FileController {
 
        }else{
            logger.error("Bad request: Image already exists for user");
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+           return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).build();
 //                   .body("Profile pic already exists for User: " + user.getEmail());
        }
         //Check whether user has already uploaded a profile pic or not
