@@ -110,7 +110,7 @@ public class FileController {
 
        }else{
            logger.error("Bad request: Image already exists for user");
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+           return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).build();
 //                   .body("Profile pic already exists for User: " + user.getEmail());
        }
         //Check whether user has already uploaded a profile pic or not
@@ -172,7 +172,7 @@ public class FileController {
                 return ResponseEntity.ok(fileUploadResponse);
             }else{
                 logger.error("Not request: Image does not exists for the user");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).cacheControl(CacheControl.noCache()).build();
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
 //                        .body("Profile pic doesn't exists for User: " + user.getEmail());
             }
         }catch (Exception e){
