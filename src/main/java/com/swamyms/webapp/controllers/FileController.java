@@ -172,7 +172,7 @@ public class FileController {
                 return ResponseEntity.ok(fileUploadResponse);
             }else{
                 logger.error("Not request: Image does not exists for the user");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).cacheControl(CacheControl.noCache()).build();
 //                        .body("Profile pic doesn't exists for User: " + user.getEmail());
             }
         }catch (Exception e){
