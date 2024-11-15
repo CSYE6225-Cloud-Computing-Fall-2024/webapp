@@ -22,8 +22,8 @@ public class VerifyUser {
     @UuidGenerator
     private String id;
 
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
 
     @Column(name = "verified")
     private boolean verified;
@@ -38,7 +38,7 @@ public class VerifyUser {
     public VerifyUser() {}
 
     public VerifyUser(String username) {
-        this.email = username;
+        this.username = username;
         this.verified = false;
         this.verifyEmailSent = false;
     }
