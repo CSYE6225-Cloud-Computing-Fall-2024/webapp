@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.swamyms.webapp.entity.AddUser;
 import com.swamyms.webapp.entity.User;
+import com.swamyms.webapp.entity.VerifyUser;
+import com.swamyms.webapp.service.SNSService;
 import com.swamyms.webapp.service.UserService;
+import com.swamyms.webapp.service.VerifyUserService;
 import com.swamyms.webapp.validations.UserValidations;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -29,9 +32,16 @@ import java.util.HashMap;
 public class UserRestController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserRestController.class);
+    private static final String TOPIC_ARN = System.getenv("TOPIC_ARN");
+//        private static final String TOPIC_ARN = "arn:aws:sns:us-east-1:123456789012:UserVerificationTopic"; // replace with your SNS topic ARN
+
+    @Autowired
+    private SNSService snsService;
     private UserService userService;
     @Autowired
     private UserValidations userValidations;
+    @Autowired
+    VerifyUserService verifyUserService;
     private MeterRegistry meterRegistry;
 
     @Autowired
@@ -158,6 +168,28 @@ public class UserRestController {
                     String jsonString = mapper.writeValueAsString(savedUser);
                     sample.stop(apiCallTimer);
                     logger.info("User Created Successfully. Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
+                    try {
+                        // Add entry in verify_user table
+                        VerifyUser verifyUser = new VerifyUser(savedUser.getEmail());
+                        verifyUserService.addUser(verifyUser);
+                        logger.info("User Post: Added user to Verify User Table");
+                        // Create PubSub message
+                        // Create and send SNS message
+                        HashMap<String, Object> snsMessage = new HashMap<>();
+                        snsMessage.put("userId", savedUser.getId());
+                        snsMessage.put("email", savedUser.getEmail());
+                        snsMessage.put("firstName", savedUser.getFirstName());
+                        snsMessage.put("lastName", savedUser.getLastName());
+//                        snsMessage.put("verificationLink", "https://yourapp.com/verify?token=" + verifyUser.getEmail());
+
+                        String messagePayload = mapper.writeValueAsString(snsMessage);
+                        snsService.publishToSNS(TOPIC_ARN, messagePayload);
+                        logger.info("User verification message published to SNS");
+
+                        logger.info("User Post: PubSub message created");
+                    } catch(Exception e) {
+                        logger.error("User Post Error: " + e);
+                    }
                     return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noCache()).contentType(MediaType.APPLICATION_JSON).body(jsonString);
                 } else {
                     logger.error("Bad request : User Email Already Exist");
