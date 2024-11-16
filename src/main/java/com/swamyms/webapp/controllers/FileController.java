@@ -1,10 +1,12 @@
 package com.swamyms.webapp.controllers;
 
 import com.swamyms.webapp.entity.User;
+import com.swamyms.webapp.entity.VerifyUser;
 import com.swamyms.webapp.entity.file.model.FileUploadRequest;
 import com.swamyms.webapp.entity.file.model.FileUploadResponse;
 import com.swamyms.webapp.service.FileService;
 import com.swamyms.webapp.service.UserService;
+import com.swamyms.webapp.service.VerifyUserService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,13 +32,17 @@ public class FileController {
     private UserService userService;
     private MeterRegistry meterRegistry;
     private final Timer apiCallTimer;
+    @Autowired
+    VerifyUserService verifyUserService;
 
     @Autowired
-    public FileController(FileService theFileService, UserService theUserService, MeterRegistry meterRegistry) {
+    public FileController(FileService theFileService, UserService theUserService, MeterRegistry meterRegistry, VerifyUserService theVerifyUserService) {
 
         this.fileService = theFileService;
         this.userService = theUserService;
         this.meterRegistry = meterRegistry;
+        this.verifyUserService=theVerifyUserService;
+
 
         // Register your metrics here
         this.apiCallTimer = Timer.builder("api.image.calls")
@@ -89,6 +95,12 @@ public class FileController {
             logger.error("Bad request: invalid user credentials");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
         }
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Get Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
+            }
 
         boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
         if (!checkUserPassword) {
@@ -146,6 +158,12 @@ public class FileController {
 
             //get user credentials from header and check authentication
             String[] userCreds = getCreds(headers);
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Get Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
+            }
 
             //if user provides only username or password, or does not provides any credential, return bad request
             if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
@@ -211,6 +229,12 @@ public class FileController {
 
             //get user credentials from header and check authentication
             String[] userCreds = getCreds(headers);
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Get Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
+            }
 
             //if user provides only username or password, or does not provides any credential, return bad request
             if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
