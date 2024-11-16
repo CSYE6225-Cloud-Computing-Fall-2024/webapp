@@ -25,6 +25,7 @@ public class VerifyUser {
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
+    @Getter
     @Column(name = "verified")
     private boolean verified;
 
