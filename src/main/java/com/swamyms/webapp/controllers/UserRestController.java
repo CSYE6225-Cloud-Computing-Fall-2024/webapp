@@ -45,10 +45,11 @@ public class UserRestController {
     private MeterRegistry meterRegistry;
 
     @Autowired
-    public UserRestController(UserService theUserService, UserValidations theUserValidations, MeterRegistry meterRegistry) {
+    public UserRestController(UserService theUserService, UserValidations theUserValidations, MeterRegistry meterRegistry, VerifyUserService theVerifyUserService) {
         userService = theUserService;
         userValidations = theUserValidations;
         this.meterRegistry = meterRegistry;
+        this.verifyUserService = theVerifyUserService;
 
         // Register your metrics here
         this.apiCallTimer = Timer.builder("api.user.calls")
@@ -76,6 +77,13 @@ public class UserRestController {
         if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
             logger.error("Bad request: Enter both username and password for Basic Auth"); // Log warning
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+        }
+
+        //check if user is verified
+        VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+        if(verifyUser.isVerified() != true) {
+            logger.error("User Get Error: User not verified");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
         }
 
         boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
@@ -229,6 +237,13 @@ public class UserRestController {
             if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
                 logger.error("Bad request: Credentials should not be present for user");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+            }
+
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Put Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
             }
 
             boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
