@@ -146,19 +146,25 @@ jobs:
           echo "Running in Development Environment..."
           # Add Dev-specific commands here
           #aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEV_ACCOUNT_ID }}\"]}"
-
+          
+          echo "Update Launch Template started..."
           #Update Launch Template
           aws ec2 create-launch-template-version \
             --launch-template-name "${{ secrets.LAUNCH_TEMPLATE_NAME }}" \
             --source-version "\$Latest" \
             --version-description "Updated with latest AMI ID" \
             --launch-template-data "{\"ImageId\": \"${{ env.AMI_ID }}\"}"
+          echo "Update Launch Template created successfully..."
 
+          echo "Modify Launch Template started..."
           aws ec2 modify-launch-template \
             --launch-template-name "${{ secrets.LAUNCH_TEMPLATE_NAME }}" \
             --default-version "\$Latest"
+          echo "Modify Launch Template modified successfully..."
 
+          
           #Start Instance Refresh
+          echo "Initializing REFRESH_ID..."
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
             --preferences '{"MinHealthyPercentage": 50}' \
@@ -166,15 +172,29 @@ jobs:
             --output text)
 
           echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+          echo "REFRESH_ID got initialized: $REFRESH_ID..."
           
           
           # Wait for Instance Refresh to complete
+          echo "Waiting for Instance Refresh to complete..."
+          
           MAX_WAIT=1800 # 30 minutes timeout
+          echo "MAX_WAIT: $MAX_WAIT"
+          
           WAIT_INTERVAL=30 # Check every 30 seconds
+          echo "WAIT_INTERVAL: $WAIT_INTERVAL"
+          
           ELAPSED_TIME=0
+          echo "ELAPSED_TIME: $ELAPSED_TIME"
+          
+          STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+              --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].Status | [0]" \
+              --output text)
+          echo "STATUS: $STATUS"
           
           while [ "$STATUS" == "InProgress" ] || [ "$STATUS" == "Pending" ] && [ $ELAPSED_TIME -lt $MAX_WAIT ]; do
-            echo "Checking Instance Refresh status..."
+            echo "Inside While Loop Checking Instance Refresh status..."
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
               --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].Status | [0]" \
