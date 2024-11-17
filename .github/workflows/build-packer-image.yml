@@ -172,28 +172,34 @@ jobs:
           MAX_WAIT=1800 # 30 minutes timeout
           WAIT_INTERVAL=30 # Check every 30 seconds
           ELAPSED_TIME=0
-          STATUS="InProgress"
           
-          while [ "$STATUS" == "InProgress" ] && [ $ELAPSED_TIME -lt $MAX_WAIT ]; do
+          while [ "$STATUS" == "InProgress" ] || [ "$STATUS" == "Pending" ] && [ $ELAPSED_TIME -lt $MAX_WAIT ]; do
             echo "Checking Instance Refresh status..."
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
               --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].Status | [0]" \
               --output text)
-
+  
             echo "Current status: $STATUS"
-
+  
             if [ "$STATUS" == "Successful" ]; then
               echo "Instance Refresh completed successfully."
               break
             elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
-              echo "Error: Instance Refresh failed with status: $STATUS"
+              REASON=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+                --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].StatusReason | [0]" \
+                --output text)
+              echo "Error: Instance Refresh failed with status: $STATUS. Reason: $REASON"
               exit 1
+            elif [ "$STATUS" == "Pending" ]; then
+              echo "Instance Refresh still in Pending status... continuing to wait."
             else
               echo "Instance Refresh still in progress..."
-              sleep $WAIT_INTERVAL
-              ELAPSED_TIME=$((ELAPSED_TIME + WAIT_INTERVAL))
             fi
+  
+            sleep $WAIT_INTERVAL
+            ELAPSED_TIME=$((ELAPSED_TIME + WAIT_INTERVAL))
           done
           
           if [ $ELAPSED_TIME -ge $MAX_WAIT ]; then
