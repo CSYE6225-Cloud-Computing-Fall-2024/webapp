@@ -55,11 +55,11 @@ jobs:
           HIBERNATE_DDL_AUTO: ${{secrets.HIBERNATE_DDL_AUTO}}
         run: ./gradlew test
 
-      - name: Configure AWS credentials
+      - name: Configure DEV AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
     
       # Build Spring boot project and remove old artifacts
@@ -106,3 +106,131 @@ jobs:
       - name: Share AMI with DEMO Account
         run: |
           aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
+
+      # Fetching Environment Variables
+      - name: Fetch Environment Variables
+        id: fetch-env-vars
+        run: |
+          echo "IS_DEV_ENVIRONMENT=${{ vars.isDevEnvironment }}" >> $GITHUB_ENV
+          echo "IS_DEMO_ENVIRONMENT=${{ vars.isDemoEnvironment }}" >> $GITHUB_ENV
+
+      - name: Determine Environments to Run
+        id: determine-env
+        run: |
+          if [ "${{ env.IS_DEV_ENVIRONMENT }}" == "true" ] && [ "${{ env.IS_DEMO_ENVIRONMENT }}" == "true" ]; then
+            echo "ENVIRONMENTS=dev,demo" >> $GITHUB_ENV
+          elif [ "${{ env.IS_DEV_ENVIRONMENT }}" == "true" ]; then
+            echo "ENVIRONMENTS=dev" >> $GITHUB_ENV
+          elif [ "${{ env.IS_DEMO_ENVIRONMENT }}" == "true" ]; then
+            echo "ENVIRONMENTS=demo" >> $GITHUB_ENV
+          else
+            echo "Error: No environment selected!"
+            exit 1
+          fi
+
+      - name: Process Dev Environment
+        if: contains(env.ENVIRONMENTS, 'dev')
+        run: |
+          echo "Running in Development Environment..."
+          # Add Dev-specific commands here
+          #aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEV_ACCOUNT_ID }}\"]}"
+
+          - name: Configure DEV AWS credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+              aws-region: ${{ secrets.AWS_REGION }}
+
+          #Update Launch Template
+          aws ec2 create-launch-template-version \
+            --launch-template-name "${{ secrets.LAUNCH_TEMPLATE_NAME }}" \
+            --source-version "\$Latest" \
+            --version-description "Updated with latest AMI ID" \
+            --launch-template-data "{\"ImageId\": \"${{ env.AMI_ID }}\"}"
+
+          aws ec2 modify-launch-template \
+            --launch-template-name "${{ secrets.LAUNCH_TEMPLATE_NAME }}" \
+            --default-version "\$Latest"
+
+          #Start Instance Refresh
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+            --preferences '{"MinHealthyPercentage": 50}' \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+          echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+
+          #Wait for Instance Refresh
+          STATUS="InProgress"
+          while [ "$STATUS" == "InProgress" ]; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+              --query "InstanceRefreshes[?InstanceRefreshId=='${{ env.REFRESH_ID }}'].Status | [0]" \
+              --output text)
+
+            echo "Current status: $STATUS"
+            if [ "$STATUS" == "InProgress" ]; then
+              sleep 30
+            fi
+          done
+
+          if [ "$STATUS" != "Successful" ]; then
+            echo "Error: Instance refresh failed with status: $STATUS"
+            exit 1
+          fi
+
+      - name: Process Demo Environment
+        if: contains(env.ENVIRONMENTS, 'demo')
+        run: |
+          echo "Running in Demo Environment..."
+          # Add Demo-specific commands here
+          # Example: Modify AMI launch permissions for Demo account
+          # aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEV_ACCOUNT_ID }}\"]}"
+
+          - name: Configure Demo AWS credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
+              aws-region: ${{ secrets.AWS_REGION }}
+          
+          # Update Launch Template
+          aws ec2 create-launch-template-version \
+            --launch-template-name "${{ secrets.LAUNCH_TEMPLATE_NAME }}" \
+            --source-version "\$Latest" \
+            --version-description "Updated with latest AMI ID" \
+            --launch-template-data "{\"ImageId\": \"${{ env.AMI_ID }}\"}"
+
+          aws ec2 modify-launch-template \
+            --launch-template-name "${{ secrets.LAUNCH_TEMPLATE_NAME }}" \
+            --default-version "\$Latest"
+
+          # Start Instance Refresh
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+            --preferences '{"MinHealthyPercentage": 50}' \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+          echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+
+          # Wait for Instance Refresh
+          STATUS="InProgress"
+          while [ "$STATUS" == "InProgress" ]; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+              --query "InstanceRefreshes[?InstanceRefreshId=='${{ env.REFRESH_ID }}'].Status | [0]" \
+              --output text)
+
+            echo "Current status: $STATUS"
+            if [ "$STATUS" == "InProgress" ]; then
+              sleep 30
+            fi
+          done
+
+          if [ "$STATUS" != "Successful" ]; then
+            echo "Error: Instance refresh failed with status: $STATUS"
+            exit 1
+          fi
