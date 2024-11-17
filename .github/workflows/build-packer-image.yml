@@ -92,17 +92,21 @@ jobs:
             -var "subnet_id=${{ secrets.SUBNET_ID }}" \
             -var "jar_file=ROOT.jar" \
             ./webapp-main.pkr.hcl
-      - name: Retrieve AMI ID
+      - name: Retrieve Latest AMI ID
         id: get-ami-id
         run: |
-          AMI_ID=$(aws ec2 describe-images --owners self --filters 'Name=name,Values=Swamy_Webapp-*' --query 'Images[0].ImageId' --output text)
+          AMI_ID=$(aws ec2 describe-images \
+            --owners self \
+            --filters 'Name=name,Values=Swamy_Webapp-*' \
+            --query 'Images | sort_by(@, &CreationDate)[-1].ImageId' \
+            --output text)
           if [ "$AMI_ID" == "None" ]; then
             echo "Error: No AMI found matching the name pattern."
             exit 1
           fi
           echo "AMI_ID=$AMI_ID"
           echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
- 
+
       - name: Share AMI with DEMO Account
         run: |
           aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
@@ -162,25 +166,30 @@ jobs:
             --output text)
 
           echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
-
-          #Wait for Instance Refresh
+          
+          # Wait for Instance Refresh to initialize
+          sleep 10
           STATUS="InProgress"
           while [ "$STATUS" == "InProgress" ]; do
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
-              --query "InstanceRefreshes[?InstanceRefreshId=='${{ env.REFRESH_ID }}'].Status | [0]" \
+              --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].Status | [0]" \
               --output text)
 
             echo "Current status: $STATUS"
-            if [ "$STATUS" == "InProgress" ]; then
-              sleep 30
-            fi
-          done
+              if [ "$STATUS" == "None" ]; then
+            echo "Error: Instance Refresh failed to initialize or not found."
+              exit 1
+              fi
 
-          if [ "$STATUS" != "Successful" ]; then
-            echo "Error: Instance refresh failed with status: $STATUS"
+            if [ "$STATUS" == "InProgress" ]; then
+            sleep 30
+            fi
+  
+            if [ "$STATUS" != "Successful" ]; then
+          echo "Error: Instance Refresh failed with status: $STATUS"
             exit 1
-          fi
+            fi
 
       - name: Configure Demo AWS credentials
         if: contains(env.ENVIRONMENTS, 'demo') # Ensures it runs only in the dev environment
