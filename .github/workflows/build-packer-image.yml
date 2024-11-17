@@ -167,30 +167,39 @@ jobs:
 
           echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
           
-          # Wait for Instance Refresh to initialize
-          sleep 10
+          
+          # Wait for Instance Refresh to complete
+          MAX_WAIT=1800 # 30 minutes timeout
+          WAIT_INTERVAL=30 # Check every 30 seconds
+          ELAPSED_TIME=0
           STATUS="InProgress"
-          while [ "$STATUS" == "InProgress" ]; do
+          
+          while [ "$STATUS" == "InProgress" ] && [ $ELAPSED_TIME -lt $MAX_WAIT ]; do
+            echo "Checking Instance Refresh status..."
             STATUS=$(aws autoscaling describe-instance-refreshes \
-              --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
+              --auto-scaling-group-name "***" \
               --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].Status | [0]" \
               --output text)
 
             echo "Current status: $STATUS"
-              if [ "$STATUS" == "None" ]; then
-              echo "Error: Instance Refresh failed to initialize or not found."
-              exit 1
-              fi
 
-            if [ "$STATUS" == "InProgress" ]; then
-            sleep 30
-            fi
-  
-            if [ "$STATUS" != "Successful" ]; then
-            echo "Error: Instance Refresh failed with status: $STATUS"
-            exit 1
+            if [ "$STATUS" == "Successful" ]; then
+              echo "Instance Refresh completed successfully."
+              break
+            elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
+              echo "Error: Instance Refresh failed with status: $STATUS"
+              exit 1
+            else
+              echo "Instance Refresh still in progress..."
+              sleep $WAIT_INTERVAL
+              ELAPSED_TIME=$((ELAPSED_TIME + WAIT_INTERVAL))
             fi
           done
+          
+          if [ $ELAPSED_TIME -ge $MAX_WAIT ]; then
+            echo "Error: Instance Refresh timed out after $MAX_WAIT seconds."
+            exit 1
+          fi
 
       - name: Configure Demo AWS credentials
         if: contains(env.ENVIRONMENTS, 'demo') # Ensures it runs only in the dev environment
