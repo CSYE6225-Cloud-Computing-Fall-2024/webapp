@@ -178,7 +178,7 @@ jobs:
 
             echo "Current status: $STATUS"
               if [ "$STATUS" == "None" ]; then
-            echo "Error: Instance Refresh failed to initialize or not found."
+              echo "Error: Instance Refresh failed to initialize or not found."
               exit 1
               fi
 
@@ -187,9 +187,10 @@ jobs:
             fi
   
             if [ "$STATUS" != "Successful" ]; then
-          echo "Error: Instance Refresh failed with status: $STATUS"
+            echo "Error: Instance Refresh failed with status: $STATUS"
             exit 1
             fi
+          done
 
       - name: Configure Demo AWS credentials
         if: contains(env.ENVIRONMENTS, 'demo') # Ensures it runs only in the dev environment
