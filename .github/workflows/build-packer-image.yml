@@ -177,7 +177,7 @@ jobs:
           while [ "$STATUS" == "InProgress" ] && [ $ELAPSED_TIME -lt $MAX_WAIT ]; do
             echo "Checking Instance Refresh status..."
             STATUS=$(aws autoscaling describe-instance-refreshes \
-              --auto-scaling-group-name "***" \
+              --auto-scaling-group-name "${{ secrets.AUTOSCALING_GROUP_NAME }}" \
               --query "InstanceRefreshes[?InstanceRefreshId=='${REFRESH_ID}'].Status | [0]" \
               --output text)
 
