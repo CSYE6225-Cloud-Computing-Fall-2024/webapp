@@ -128,19 +128,20 @@ jobs:
             exit 1
           fi
 
+      - name: Configure DEV AWS credentials
+        if: contains(env.ENVIRONMENTS, 'dev') # Ensures it runs only in the dev environment
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Process Dev Environment
         if: contains(env.ENVIRONMENTS, 'dev')
         run: |
           echo "Running in Development Environment..."
           # Add Dev-specific commands here
           #aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEV_ACCOUNT_ID }}\"]}"
-
-          # Configure DEV AWS credentials
-          aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
 
           #Update Launch Template
           aws ec2 create-launch-template-version \
@@ -181,6 +182,14 @@ jobs:
             exit 1
           fi
 
+      - name: Configure Demo AWS credentials
+        if: contains(env.ENVIRONMENTS, 'demo') # Ensures it runs only in the dev environment
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Process Demo Environment
         if: contains(env.ENVIRONMENTS, 'demo')
         run: |
@@ -188,13 +197,6 @@ jobs:
           # Add Demo-specific commands here
           # Example: Modify AMI launch permissions for Demo account
           # aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEV_ACCOUNT_ID }}\"]}"
-
-          # Configure Demo AWS credentials
-          aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
           
           # Update Launch Template
           aws ec2 create-launch-template-version \
