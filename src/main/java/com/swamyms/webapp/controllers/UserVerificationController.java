@@ -1,5 +1,6 @@
 package com.swamyms.webapp.controllers;
 
+import com.swamyms.webapp.entity.VerifyUser;
 import com.swamyms.webapp.service.VerifyUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,13 @@ public class UserVerificationController {
         // Decode the username
         String username = new String(Base64.getUrlDecoder().decode(encodedUsername), StandardCharsets.UTF_8);
         logger.info("Getting User Info {}", username);
+
+        VerifyUser verifyUser = verifyUserService.getByName(username);
+        if(verifyUser.isVerified() == true) {
+            logger.info("Verify User Info: User already verified");
+            response.put("message", "Your email is already verified.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).build();
+        }
 
         // Check if params or body are present
         if(param.size() > 0 || userBody != null) {
