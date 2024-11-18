@@ -28,7 +28,7 @@ import java.util.HashMap;
 
 @Validated
 @RestController
-@RequestMapping("/v2")
+@RequestMapping("/v1")
 public class UserRestController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserRestController.class);
