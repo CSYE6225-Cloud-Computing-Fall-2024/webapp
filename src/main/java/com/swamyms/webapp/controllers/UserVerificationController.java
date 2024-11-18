@@ -10,7 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/v1")
@@ -20,8 +23,14 @@ public class UserVerificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserVerificationController.class);
 
-    @GetMapping("/verify/{username}")
-    public ResponseEntity<Object> verifyUser(@RequestParam(required = false) HashMap<String, String> param, @PathVariable String username, @RequestBody(required = false) String userBody) {
+    @GetMapping("/verify/{encodedUsername}")
+    public ResponseEntity<Object> verifyUser(@RequestParam(required = false) HashMap<String, String> param, @PathVariable("encodedUsername") String encodedUsername, @RequestBody(required = false) String userBody) {
+        Map<String, String> response = new HashMap<>();
+
+        // Decode the username
+        String username = new String(Base64.getUrlDecoder().decode(encodedUsername), StandardCharsets.UTF_8);
+        logger.info("Getting User Info {}", username);
+
         // Check if params or body are present
         if(param.size() > 0 || userBody != null) {
             logger.error("Verify User Error: Params are present or body is null");
@@ -33,10 +42,16 @@ public class UserVerificationController {
             boolean userVerified = verifyUserService.updateStatus(username);
             if (userVerified) {
                 logger.info("Verify User Info: User Verified");
-                return ResponseEntity.status(HttpStatus.OK).cacheControl(CacheControl.noCache()).body("User Verified Successfully !!");
+
+                response.put("message", "User Verified Successfully !!");
+
+                return ResponseEntity.status(HttpStatus.OK)
+                        .cacheControl(CacheControl.noCache())
+                        .body(response);
             } else {
                 logger.info("Verify User Info: Link Expired");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).body("Link Expired...");
+                response.put("message", "Email verification unsuccessful. Your verification link expired after 2 minutes");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).body(response);
             }
         }
         else {
