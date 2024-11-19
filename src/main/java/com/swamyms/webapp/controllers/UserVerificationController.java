@@ -45,7 +45,7 @@ public class UserVerificationController {
         if(verifyUser.isVerified() == true) {
             logger.info("Verify User Info: User already verified");
             response.put("message", "Your email is already verified.");
-            return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).body(response);
         }
 
         // Check if params or body are present
