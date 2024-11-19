@@ -4,6 +4,7 @@ import com.swamyms.webapp.dao.UserDAO;
 import com.swamyms.webapp.dao.VerifyUserDAO;
 import com.swamyms.webapp.entity.User;
 import com.swamyms.webapp.entity.VerifyUser;
+import com.swamyms.webapp.exceptionhandling.exceptions.UserNotFoundException;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
@@ -46,6 +47,8 @@ public class VerifyUserService {
     }
 
     public VerifyUser getByName(String email){
+
+
         Timer.Sample sample = Timer.start(meterRegistry); // Start timing
         long startTime = System.currentTimeMillis(); // Start timing API call
         logger.info("Fetching user by email: {}", email); // Log fetching user
@@ -55,6 +58,9 @@ public class VerifyUserService {
         sample.stop(dbQueryTimer); // Stop timing and record
         logger.info("Get User By Email Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
 
+        if (fetchedUser == null) {
+            throw new UserNotFoundException("User with username '" + email + "' not found.");
+        }
         return fetchedUser;
     }
 
