@@ -5,7 +5,9 @@ import com.swamyms.webapp.config.SecurityConfig;
 import com.swamyms.webapp.controllers.UserRestController;
 import com.swamyms.webapp.entity.AddUser;
 import com.swamyms.webapp.entity.User;
+import com.swamyms.webapp.entity.VerifyUser;
 import com.swamyms.webapp.service.UserService;
+import com.swamyms.webapp.service.VerifyUserService;
 import com.swamyms.webapp.validations.UserValidations;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,6 +42,8 @@ class WebappApplicationTests {
 	private UserRestController userRestController;
 	@Mock
 	private UserService userService;
+	@Mock
+	private VerifyUserService verifyUserService;
 	@Mock
 	private UserValidations userValidations;
 	//    private User testUser;
@@ -94,7 +98,7 @@ class WebappApplicationTests {
 		when(config.clock()).thenReturn(Clock.SYSTEM);
 
 		// Create the UserRestController instance
-		userRestController = new UserRestController(userService, userValidations, meterRegistry);
+		userRestController = new UserRestController(userService, userValidations, meterRegistry, verifyUserService);
 
 
 	}
@@ -163,6 +167,12 @@ class WebappApplicationTests {
 		headers.set("Authorization", auth);
 		// Mock the userService.authenticateUser method
 		when(userService.authenticateUser("1@mail.com", "ffffff@1A")).thenReturn(true);
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("1@mail.com")).thenReturn(unverifiedUser);
+
+//		when(verifyUserService.getByName("1@mail.com")).thenReturn();
 		// Act
 		ResponseEntity<?> response = userRestController.getUser(params, headers, null);
 		// Assert
@@ -498,6 +508,12 @@ class WebappApplicationTests {
 		String requestBody = "{\"first_name\":\"John\",\"last_name\":\"Doe\"}"; // Example valid request body
 		// Mock the userService.authenticateUser method to return false
 		when(userService.authenticateUser("invalid@mail.com", "wrongpassword")).thenReturn(false);
+
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("invalid@mail.com")).thenReturn(unverifiedUser);
+
 		// Act
 		ResponseEntity<Object> response = userRestController.updateUser(params, headers, requestBody);
 		// Assert
@@ -516,6 +532,12 @@ class WebappApplicationTests {
 		String requestBody = "{}"; // Empty JSON body
 		// Mock the userService.authenticateUser method to return true
 		when(userService.authenticateUser("valid@mail.com", "correctpassword")).thenReturn(true);
+
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("valid@mail.com")).thenReturn(unverifiedUser);
+
 		// Act
 		ResponseEntity<Object> response = userRestController.updateUser(params, headers, requestBody);
 		// Assert
@@ -533,6 +555,11 @@ class WebappApplicationTests {
 		String requestBody = "{\"id\":1,\"first_name\":\"John\",\"last_name\":\"Doe\",\"password\":\"ValidPassword1!\"}"; // Contains 'id'
 		// Mock the userService.authenticateUser method to return true
 		when(userService.authenticateUser("valid@mail.com", "correctpassword")).thenReturn(true);
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("valid@mail.com")).thenReturn(unverifiedUser);
+
 		// Act
 		ResponseEntity<Object> response = userRestController.updateUser(params, headers, requestBody);
 		// Assert
@@ -546,6 +573,12 @@ class WebappApplicationTests {
 		// Valid user credentials
 		String auth = "Basic " + Base64.getEncoder().encodeToString("valid@mail.com:correctpassword".getBytes());
 		headers.set("Authorization", auth);
+
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("valid@mail.com")).thenReturn(unverifiedUser);
+
 		// Creating user body with prohibited 'email' field
 		String requestBody = "{\"email\":\"invalid@mail.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"password\":\"ValidPassword1!\"}"; // Contains 'email'
 		// Mock the userService.authenticateUser method to return true
@@ -567,6 +600,12 @@ class WebappApplicationTests {
 		String requestBody = "{\"accountCreated\":\"2024-10-01T10:00:00Z\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"password\":\"ValidPassword1!\"}"; // Contains 'accountCreated'
 		// Mock the userService.authenticateUser method to return true
 		when(userService.authenticateUser("valid@mail.com", "correctpassword")).thenReturn(true);
+
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("valid@mail.com")).thenReturn(unverifiedUser);
+
 		// Act
 		ResponseEntity<Object> response = userRestController.updateUser(params, headers, requestBody);
 		// Assert
@@ -584,6 +623,11 @@ class WebappApplicationTests {
 		String requestBody = "{\"accountUpdated\":\"2024-10-01T10:00:00Z\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"password\":\"ValidPassword1!\"}"; // Contains 'accountUpdated'
 		// Mock the userService.authenticateUser method to return true
 		when(userService.authenticateUser("valid@mail.com", "correctpassword")).thenReturn(true);
+
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("valid@mail.com")).thenReturn(unverifiedUser);
 		// Act
 		ResponseEntity<Object> response = userRestController.updateUser(params, headers, requestBody);
 		// Assert
@@ -603,6 +647,12 @@ class WebappApplicationTests {
 		when(userService.authenticateUser("valid@mail.com", "correctpassword")).thenReturn(true);
 		// Mock the password validation method to return false for invalid password
 		when(userValidations.isValidPassword("short")).thenReturn(false);
+
+		// Mock the verifyUserService.getByName method to return an unverified user
+		VerifyUser unverifiedUser = new VerifyUser();
+		unverifiedUser.setVerified(true);
+		when(verifyUserService.getByName("valid@mail.com")).thenReturn(unverifiedUser);
+
 		// Act
 		ResponseEntity<Object> response = userRestController.updateUser(params, headers, requestBody);
 		// Assert

@@ -1,10 +1,12 @@
 package com.swamyms.webapp.controllers;
 
 import com.swamyms.webapp.entity.User;
+import com.swamyms.webapp.entity.VerifyUser;
 import com.swamyms.webapp.entity.file.model.FileUploadRequest;
 import com.swamyms.webapp.entity.file.model.FileUploadResponse;
 import com.swamyms.webapp.service.FileService;
 import com.swamyms.webapp.service.UserService;
+import com.swamyms.webapp.service.VerifyUserService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,13 +32,17 @@ public class FileController {
     private UserService userService;
     private MeterRegistry meterRegistry;
     private final Timer apiCallTimer;
+    @Autowired
+    VerifyUserService verifyUserService;
 
     @Autowired
-    public FileController(FileService theFileService, UserService theUserService, MeterRegistry meterRegistry) {
+    public FileController(FileService theFileService, UserService theUserService, MeterRegistry meterRegistry, VerifyUserService theVerifyUserService) {
 
         this.fileService = theFileService;
         this.userService = theUserService;
         this.meterRegistry = meterRegistry;
+        this.verifyUserService=theVerifyUserService;
+
 
         // Register your metrics here
         this.apiCallTimer = Timer.builder("api.image.calls")
@@ -81,48 +87,54 @@ public class FileController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
 //                        .body("Bad Request: Unsupported file type. Only PNG, JPG, and JPEG files are allowed.");
             }
-        //get user credentials from header and check authentication
-        String[] userCreds = getCreds(headers);
+            //get user credentials from header and check authentication
+            String[] userCreds = getCreds(headers);
 
-        //if user provides only username or password, or does not provides any credential, return bad request
-        if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
-            logger.error("Bad request: invalid user credentials");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
-        }
+            //if user provides only username or password, or does not provides any credential, return bad request
+            if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
+                logger.error("Bad request: invalid user credentials");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+            }
 
-        boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
-        if (!checkUserPassword) {
-            logger.error("Unauthorized request: invalid user credentials");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).build();
-        }
+            boolean checkUserPassword = userService.authenticateUser(userCreds[0], userCreds[1]);
+            if (!checkUserPassword) {
+                logger.error("Unauthorized request: invalid user credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).build();
+            }
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Get Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
+            }
 
-        //retrieve user from db
-        User user = userService.getUserByEmail(userCreds[0]);
+            //retrieve user from db
+            User user = userService.getUserByEmail(userCreds[0]);
 
-       boolean imageExists = fileService.getUserImageByUserID(user.getId());
+           boolean imageExists = fileService.getUserImageByUserID(user.getId());
 
-       if(!imageExists){
-           FileUploadRequest fileUploadRequest = new FileUploadRequest(file);
-           FileUploadResponse fileUploadResponse = fileService.upload(fileUploadRequest, user);
-           logger.info("Image uploaded successfully. Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
-           sample.stop(apiCallTimer);
-           return ResponseEntity.ok(fileUploadResponse);
+           if(!imageExists){
+               FileUploadRequest fileUploadRequest = new FileUploadRequest(file);
+               FileUploadResponse fileUploadResponse = fileService.upload(fileUploadRequest, user);
+               logger.info("Image uploaded successfully. Time taken: {} ms", System.currentTimeMillis() - startTime); // Log info
+               sample.stop(apiCallTimer);
+               return ResponseEntity.ok(fileUploadResponse);
 
-       }else{
-           logger.error("Bad request: Image already exists for user");
-           return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).build();
-//                   .body("Profile pic already exists for User: " + user.getEmail());
-       }
-        //Check whether user has already uploaded a profile pic or not
-            // if not uploaded let the user upload
-            //if already uploaded I should handle this error
-            //what error should be thrown
-//        FileUploadRequest fileUploadRequest = new FileUploadRequest(file, name);
-//        return ResponseEntity.ok(fileService.upload(fileUploadRequest, user));
-        }catch (Exception e){
-            logger.error("Internal Server error Post Request /user/self/pic: Exception connection : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).cacheControl(CacheControl.noCache()).build();
-        }
+           }else{
+               logger.error("Bad request: Image already exists for user");
+               return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noCache()).build();
+    //                   .body("Profile pic already exists for User: " + user.getEmail());
+           }
+            //Check whether user has already uploaded a profile pic or not
+                // if not uploaded let the user upload
+                //if already uploaded I should handle this error
+                //what error should be thrown
+    //        FileUploadRequest fileUploadRequest = new FileUploadRequest(file, name);
+    //        return ResponseEntity.ok(fileService.upload(fileUploadRequest, user));
+            }catch (Exception e){
+                logger.error("Internal Server error Post Request /user/self/pic: Exception connection : {}", e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).cacheControl(CacheControl.noCache()).build();
+            }
     }
 
 
@@ -146,7 +158,6 @@ public class FileController {
 
             //get user credentials from header and check authentication
             String[] userCreds = getCreds(headers);
-
             //if user provides only username or password, or does not provides any credential, return bad request
             if (userCreds.length < 2 || userCreds[0].isEmpty() || userCreds[1].isEmpty()) {
                 logger.error("Bad request: invalid user credentials");
@@ -157,6 +168,12 @@ public class FileController {
             if (!checkUserPassword) {
                 logger.error("Unauthorized request: invalid user credentials");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).build();
+            }
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Get Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
             }
 
             //retrieve user from db
@@ -223,7 +240,12 @@ public class FileController {
                 logger.error("Unauthorized request: user invalid credentials");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).cacheControl(CacheControl.noCache()).build();
             }
-
+            //check if user is verified
+            VerifyUser verifyUser = verifyUserService.getByName(userCreds[0]);
+            if(verifyUser.isVerified() != true) {
+                logger.error("User Get Error: User not verified");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).cacheControl(CacheControl.noCache()).build();
+            }
             //retrieve user from db
             User user = userService.getUserByEmail(userCreds[0]);
 

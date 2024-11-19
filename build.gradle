@@ -33,6 +33,9 @@ dependencies {
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 	implementation 'software.amazon.awssdk:s3:2.20.37' // check for the latest version
 	implementation 'software.amazon.awssdk:auth:2.20.37'
+	implementation 'software.amazon.awssdk:sns:2.20.0'
+	implementation 'software.amazon.awssdk:regions:2.20.0'
+
 
 
 	implementation 'io.micrometer:micrometer-registry-cloudwatch2'
