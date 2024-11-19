@@ -1,6 +1,7 @@
 package com.swamyms.webapp.controllers;
 
 import com.swamyms.webapp.entity.VerifyUser;
+import com.swamyms.webapp.exceptionhandling.exceptions.UserNotFoundException;
 import com.swamyms.webapp.service.VerifyUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,19 @@ public class UserVerificationController {
 
     @GetMapping("/verify/{encodedUsername}")
     public ResponseEntity<Object> verifyUser(@RequestParam(required = false) HashMap<String, String> param, @PathVariable("encodedUsername") String encodedUsername, @RequestBody(required = false) String userBody) {
-        Map<String, String> response = new HashMap<>();
 
+
+        Map<String, String> response = new HashMap<>();
+    try{
         // Decode the username
         String username = new String(Base64.getUrlDecoder().decode(encodedUsername), StandardCharsets.UTF_8);
         logger.info("Getting User Info {}", username);
+
+        // Check if params or body are present
+        if(param.size() > 0 || userBody != null) {
+            logger.error("Verify User Error: Params are present or body is null");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
+        }
 
         VerifyUser verifyUser = verifyUserService.getByName(username);
         if(verifyUser.isVerified() == true) {
@@ -65,6 +74,20 @@ public class UserVerificationController {
         else {
             logger.error("Verify User Error : Username is not present in query");
         }
+
+    } catch (UserNotFoundException e) {
+        logger.error("Verify User Error: " + e.getMessage());
+        response.put("error", "User not found.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).cacheControl(CacheControl.noCache()).body(response);
+    } catch (IllegalArgumentException e) {
+        logger.error("Verify User Error: Invalid encoded username");
+        response.put("error", "Invalid username format.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).body(response);
+    } catch (Exception e) {
+        logger.error("Verify User Error: Unexpected error occurred", e);
+        response.put("error", "An unexpected error occurred. Please try again later.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).cacheControl(CacheControl.noCache()).body(response);
+    }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).cacheControl(CacheControl.noCache()).build();
     }
