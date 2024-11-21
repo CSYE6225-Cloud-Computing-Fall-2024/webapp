@@ -70,10 +70,13 @@ public class VerifyUserService {
         // Get instant from database and current instant
         Instant userInstant = verifyUser.getEmailSent();
         Instant currentInstant = Instant.now();
+        logger.debug("userInstant TimeStamp = " + userInstant);
+        logger.debug("currentInstant TimeStamp= " + currentInstant);
 
         Duration duration = Duration.between(userInstant, currentInstant);
-
+        logger.debug("Duration: Duration in between userInstant and currentInstant = " + duration);
         long differenceInMinutes = Math.abs(duration.toMinutes());
+
         logger.debug("Verify User Service Debug: differenceInMinutes = " + differenceInMinutes);
         // Difference should be less than 2 minutes
         if(differenceInMinutes <= 2) {
