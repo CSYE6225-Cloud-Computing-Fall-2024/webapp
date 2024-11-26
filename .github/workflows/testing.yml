@@ -2,7 +2,7 @@ name: GitHub Unit Testing Workflow
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ test/Assignment09Https ]
 
 permissions:
   checks: write

@@ -2,7 +2,7 @@ name: Packer Validate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [test/Assignment09Https]
 
 jobs:
     packer-validate:
