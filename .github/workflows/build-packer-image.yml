@@ -3,7 +3,7 @@ name: Build Packer Image
 on:
   push:
     branches:
-      - test/Assignment09Https
+      - main
 
 jobs:
   build:
