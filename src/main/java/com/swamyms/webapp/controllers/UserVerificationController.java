@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/v1")
+@RequestMapping("/v2")
 public class UserVerificationController {
     @Autowired
     private VerifyUserService verifyUserService;
